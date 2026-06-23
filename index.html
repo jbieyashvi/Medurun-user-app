@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AmbuCare / RapidAid — Emergency Ambulance Booking</title>
+<style>
+  :root{
+    --red:#E63946;        /* emergency red */
+    --red-dark:#C62B38;
+    --navy:#15233B;       /* deep navy text */
+    --navy-soft:#3A4A66;
+    --grey-card:#F2F4F8;  /* soft grey cards */
+    --grey-line:#E4E8EF;
+    --grey-text:#8A94A6;
+    --white:#FFFFFF;
+    --green:#2BB673;
+    --amber:#F4A340;
+    --shadow:0 8px 30px rgba(21,35,59,.10);
+    --shadow-lg:0 18px 50px rgba(21,35,59,.18);
+    --r:22px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#0E1626;
+    color:var(--navy);
+    height:100vh;width:100vw;overflow:hidden;
+  }
+  /* stage centers + clips the scaled phone */
+  .stage{
+    position:fixed;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  /* ===== Phone frame ===== */
+  .phone{
+    position:relative;width:390px;height:844px;flex:none;
+    background:var(--white);border-radius:46px;
+    box-shadow:var(--shadow-lg),0 0 0 12px #1c1c1e,0 0 0 14px #2c2c2e;
+    overflow:hidden;
+    transform:scale(var(--s,0.82));
+    transform-origin:center center;
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:150px;height:30px;background:#000;border-radius:0 0 20px 20px;z-index:200;}
+  .statusbar{position:absolute;top:0;left:0;right:0;height:48px;z-index:150;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 28px 0;font-size:13px;font-weight:600;color:var(--navy);pointer-events:none;}
+  .statusbar.light{color:#fff;}
+  .statusbar .sb-icons{display:flex;gap:6px;align-items:center;}
+
+  /* ===== Screens ===== */
+  .screen{position:absolute;inset:0;background:var(--white);
+    display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;transform:translateX(30px);
+    transition:opacity .32s ease, transform .32s cubic-bezier(.4,0,.2,1), visibility .32s;
+    overflow:hidden;}
+  .screen.active{opacity:1;visibility:visible;transform:translateX(0);z-index:10;}
+  .screen.back{transform:translateX(-30px);}
+
+  .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .scroll::-webkit-scrollbar{display:none;}
+  .pad{padding:18px 22px;}
+  .pt-status{padding-top:54px;}
+
+  /* ===== Generic UI ===== */
+  h1{font-size:26px;font-weight:800;letter-spacing:-.4px;color:var(--navy);line-height:1.15;}
+  h2{font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-.3px;}
+  h3{font-size:16px;font-weight:700;color:var(--navy);}
+  p.sub{color:var(--grey-text);font-size:14px;line-height:1.5;margin-top:6px;}
+  .muted{color:var(--grey-text);}
+  .small{font-size:12px;}
+  .center{text-align:center;}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:9px;
+    width:100%;border:none;border-radius:18px;padding:17px;font-size:16px;font-weight:700;
+    cursor:pointer;transition:transform .12s ease, box-shadow .2s, background .2s;
+    font-family:inherit;}
+  .btn:active{transform:scale(.97);}
+  .btn-red{background:var(--red);color:#fff;box-shadow:0 8px 20px rgba(230,57,70,.32);}
+  .btn-red:active{background:var(--red-dark);}
+  .btn-navy{background:var(--navy);color:#fff;}
+  .btn-ghost{background:var(--grey-card);color:var(--navy);}
+  .btn-outline{background:#fff;color:var(--navy);border:1.6px solid var(--grey-line);}
+  .btn-line-red{background:#fff;color:var(--red);border:1.6px solid var(--red);}
+  .btn-sm{padding:13px;font-size:14px;border-radius:14px;}
+
+  .back-btn{width:42px;height:42px;border-radius:50%;background:var(--grey-card);
+    border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    font-size:18px;color:var(--navy);flex:none;}
+  .topbar{display:flex;align-items:center;gap:14px;padding:8px 22px 6px;}
+  .topbar h2{flex:1;}
+  /* safe-area: header sits clear of the notch/status bar */
+  .topbar.pt-status{padding-top:60px;padding-bottom:8px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--navy-soft);margin-bottom:7px;}
+  .input{width:100%;border:1.6px solid var(--grey-line);background:var(--grey-card);
+    border-radius:14px;padding:15px 16px;font-size:15px;color:var(--navy);font-family:inherit;outline:none;
+    transition:border .2s,background .2s;}
+  .input:focus{border-color:var(--red);background:#fff;}
+  .input::placeholder{color:#A9B2C2;}
+  .input-row{display:flex;gap:10px;align-items:center;}
+  .pill-prefix{background:var(--grey-card);border:1.6px solid var(--grey-line);border-radius:14px;
+    padding:15px 14px;font-weight:700;font-size:15px;color:var(--navy);flex:none;}
+
+  .card{background:var(--grey-card);border-radius:var(--r);padding:16px;}
+  .card-w{background:#fff;border:1.5px solid var(--grey-line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);}
+  .row{display:flex;align-items:center;gap:12px;}
+  .between{justify-content:space-between;}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.4px solid var(--grey-line);
+    border-radius:30px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;}
+  .chip.on{background:var(--red);color:#fff;border-color:var(--red);}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
+    padding:5px 10px;border-radius:20px;}
+  .badge-green{background:rgba(43,182,115,.14);color:#1d8f5a;}
+  .badge-red{background:rgba(230,57,70,.12);color:var(--red);}
+  .badge-amber{background:rgba(244,163,64,.16);color:#c97c12;}
+
+  .avatar{border-radius:50%;background:linear-gradient(135deg,#FFD7DB,#FFB3BB);
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--red-dark);flex:none;}
+
+  /* ===== Map ===== */
+  .map{position:absolute;inset:0;background:
+    radial-gradient(circle at 30% 20%, #EAF1F7 0%, #E2EAF2 40%, #DCE5EF 100%);
+    overflow:hidden;}
+  .map svg{position:absolute;inset:0;width:100%;height:100%;}
+  .map-pin{position:absolute;transform:translate(-50%,-100%);font-size:26px;z-index:5;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));}
+  .amb-dot{position:absolute;width:34px;height:34px;border-radius:50%;background:var(--red);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;
+    transform:translate(-50%,-50%);box-shadow:0 0 0 6px rgba(230,57,70,.18);z-index:6;}
+  .pulse{position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(43,138,230,.9);
+    transform:translate(-50%,-50%);z-index:5;}
+  .pulse::after{content:"";position:absolute;inset:-8px;border-radius:50%;
+    border:2px solid rgba(43,138,230,.55);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{transform:scale(.6);opacity:1;}100%{transform:scale(2.4);opacity:0;}}
+
+  /* ===== SOS floating ===== */
+  .sos{position:absolute;width:62px;height:62px;border-radius:50%;background:var(--red);
+    color:#fff;font-weight:800;font-size:15px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;border:3px solid #fff;box-shadow:0 8px 24px rgba(230,57,70,.5);
+    cursor:pointer;z-index:60;line-height:1;}
+  .sos::before{content:"";position:absolute;inset:-3px;border-radius:50%;
+    border:3px solid var(--red);animation:sospulse 1.6s infinite;}
+  @keyframes sospulse{0%{transform:scale(1);opacity:.7;}100%{transform:scale(1.5);opacity:0;}}
+  .sos span{font-size:9px;font-weight:600;margin-top:1px;}
+
+  /* ===== Bottom nav ===== */
+  .bottomnav{display:flex;border-top:1px solid var(--grey-line);background:#fff;
+    padding:10px 0 22px;flex:none;z-index:50;}
+  .navitem{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:11px;font-weight:600;color:var(--grey-text);cursor:pointer;}
+  .navitem .ic{font-size:20px;}
+  .navitem.on{color:var(--red);}
+
+  /* sheet that floats over map */
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;
+    border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(21,35,59,.14);z-index:40;
+    padding:16px 20px 22px;}
+  .grab{width:40px;height:5px;border-radius:5px;background:var(--grey-line);margin:0 auto 14px;}
+
+  .floatbtn{position:absolute;border:none;background:#fff;border-radius:14px;
+    box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--navy);font-size:18px;z-index:30;}
+
+  /* splash */
+  .splash{background:linear-gradient(160deg,var(--red) 0%,#B91E2B 100%);
+    align-items:center;justify-content:center;text-align:center;color:#fff;}
+  .splash .logo{width:108px;height:108px;border-radius:30px;background:rgba(255,255,255,.16);
+    display:flex;align-items:center;justify-content:center;font-size:54px;margin:0 auto 26px;
+    backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.25);}
+
+  .timeline{position:relative;padding-left:28px;}
+  .timeline .step{position:relative;padding-bottom:22px;}
+  .timeline .step::before{content:"";position:absolute;left:-21px;top:3px;width:14px;height:14px;
+    border-radius:50%;background:#fff;border:3px solid var(--grey-line);z-index:2;}
+  .timeline .step.done::before{background:var(--green);border-color:var(--green);}
+  .timeline .step.now::before{background:var(--red);border-color:var(--red);animation:sospulse 1.4s infinite;}
+  .timeline .step::after{content:"";position:absolute;left:-15px;top:14px;width:2px;height:100%;background:var(--grey-line);}
+  .timeline .step:last-child::after{display:none;}
+  .timeline .step.done::after{background:var(--green);}
+
+  .otp-row{display:flex;gap:9px;justify-content:space-between;margin:8px 0 4px;}
+  .otp-box{flex:1;height:58px;border:1.8px solid var(--grey-line);border-radius:14px;
+    background:var(--grey-card);text-align:center;font-size:24px;font-weight:800;color:var(--navy);
+    display:flex;align-items:center;justify-content:center;transition:border .2s,background .2s;}
+  .otp-box.fill{border-color:var(--red);background:#fff;}
+  .otp-box.cursor{border-color:var(--red);}
+
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;}
+  .key{background:var(--grey-card);border:none;border-radius:16px;padding:16px;font-size:22px;
+    font-weight:700;color:var(--navy);cursor:pointer;font-family:inherit;}
+  .key:active{background:var(--grey-line);}
+
+  .photo-up{width:104px;height:104px;border-radius:50%;background:var(--grey-card);
+    border:2px dashed #C7CFDC;display:flex;align-items:center;justify-content:center;
+    font-size:32px;margin:0 auto;position:relative;cursor:pointer;}
+  .photo-up .cam{position:absolute;bottom:0;right:0;width:34px;height:34px;border-radius:50%;
+    background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:15px;border:3px solid #fff;}
+
+  .divider{display:flex;align-items:center;gap:12px;color:var(--grey-text);font-size:12px;margin:18px 0;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--grey-line);}
+
+  .spinner{width:74px;height:74px;border-radius:50%;border:6px solid var(--grey-line);
+    border-top-color:var(--red);animation:spin 1s linear infinite;margin:0 auto;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .radar{width:160px;height:160px;border-radius:50%;margin:0 auto;position:relative;
+    background:radial-gradient(circle,rgba(230,57,70,.06),transparent 70%);}
+  .radar::before,.radar::after{content:"";position:absolute;inset:0;border-radius:50%;
+    border:2px solid rgba(230,57,70,.4);animation:radar 2.4s infinite;}
+  .radar::after{animation-delay:1.2s;}
+  @keyframes radar{0%{transform:scale(.3);opacity:1;}100%{transform:scale(1);opacity:0;}}
+  .radar .core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:54px;height:54px;border-radius:50%;background:var(--red);display:flex;align-items:center;
+    justify-content:center;color:#fff;font-size:26px;box-shadow:0 8px 20px rgba(230,57,70,.4);}
+
+  .lineitem{display:flex;justify-content:space-between;padding:11px 0;font-size:14px;color:var(--navy-soft);}
+  .lineitem.total{border-top:1.5px dashed var(--grey-line);margin-top:4px;padding-top:14px;
+    font-weight:800;font-size:17px;color:var(--navy);}
+
+  .pay-opt{display:flex;align-items:center;gap:14px;padding:16px;border:1.8px solid var(--grey-line);
+    border-radius:16px;margin-bottom:12px;cursor:pointer;transition:border .2s,background .2s;}
+  .pay-opt.on{border-color:var(--red);background:rgba(230,57,70,.04);}
+  .pay-opt .ic{width:44px;height:44px;border-radius:12px;background:var(--grey-card);
+    display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+  .radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--grey-line);flex:none;margin-left:auto;}
+  .pay-opt.on .radio{border-color:var(--red);background:radial-gradient(circle,var(--red) 0 7px,#fff 7px);}
+
+  .toast{position:absolute;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+    background:var(--navy);color:#fff;padding:13px 20px;border-radius:14px;font-size:13px;font-weight:600;
+    opacity:0;transition:all .3s;z-index:300;white-space:nowrap;box-shadow:var(--shadow-lg);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .success-check{width:96px;height:96px;border-radius:50%;background:var(--green);margin:0 auto;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:46px;
+    box-shadow:0 12px 30px rgba(43,182,115,.4);animation:pop .4s cubic-bezier(.2,1.3,.4,1);}
+  @keyframes pop{0%{transform:scale(0);}100%{transform:scale(1);}}
+
+  .hist-card{display:flex;gap:14px;padding:15px;border:1.5px solid var(--grey-line);
+    border-radius:18px;margin-bottom:12px;cursor:pointer;}
+  .hist-ic{width:46px;height:46px;border-radius:13px;background:var(--grey-card);
+    display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;}
+
+  /* hidden developer menu — toggled with the `D` key, off-screen otherwise */
+  .devmenu{position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(160%);z-index:999;
+    background:rgba(14,22,38,.94);color:#fff;padding:9px 16px;border-radius:30px;font-size:12px;
+    display:flex;gap:12px;align-items:center;backdrop-filter:blur(8px);transition:transform .3s ease;}
+  .devmenu.show{transform:translateX(-50%) translateY(0);}
+  .devmenu b{color:#FF8A93;}
+  .devmenu button{background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:20px;
+    padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+
+  /* ===== Login — premium minimal scope ===== */
+  #s-login .login-logo{font-size:28px;}
+  #s-login h1{font-size:28px;}
+  #s-login .input{height:48px;padding:0 16px;}
+  #s-login .pill-prefix{height:48px;display:flex;align-items:center;}
+  #s-login .btn{height:48px;padding:0;font-size:15px;}
+  #s-login .field{margin-bottom:12px;}
+  #s-login .textlink{color:var(--red);font-weight:700;cursor:pointer;}
+
+  /* ===== onboarding progress bar ===== */
+  .obar-wrap{padding:0 22px 2px;}
+  .obar{height:5px;background:var(--grey-line);border-radius:5px;overflow:hidden;}
+  .obar i{display:block;height:100%;background:var(--red);border-radius:5px;transition:width .4s ease;}
+  .obar-step{font-size:11px;font-weight:700;color:var(--grey-text);margin-top:7px;letter-spacing:.2px;}
+
+  /* responsive blood-group chips */
+  .bloodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .bloodgrid .chip{justify-content:center;padding:10px 0;}
+
+  /* OTP as real inputs */
+  .otp-row input.otp-box{outline:none;font-family:inherit;}
+  .otp-row input.otp-box:focus{border-color:var(--red);background:#fff;}
+
+  /* ===== minimal line-icon system ===== */
+  .icon{width:22px;height:22px;stroke:currentColor;stroke-width:1.7;fill:none;
+    stroke-linecap:round;stroke-linejoin:round;flex:none;display:block;}
+  .icon-sm{width:18px;height:18px;}
+
+  /* ===== Home redesign ===== */
+  #s-home .map{filter:saturate(.82) brightness(1.01);}
+  /* minimal map marker: white disc + small red glyph, ~30% smaller */
+  .marker{position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(21,35,59,.22);z-index:6;}
+  .marker svg{width:13px;height:13px;stroke:var(--red);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  /* user location dot — Google-maps style, calm */
+  .userdot{position:absolute;width:16px;height:16px;border-radius:50%;background:#2A6BE0;
+    border:3px solid #fff;transform:translate(-50%,-50%);z-index:7;
+    box-shadow:0 0 0 6px rgba(42,107,224,.16),0 2px 5px rgba(0,0,0,.2);}
+
+  /* clean SOS — no glow/pulse, ~22% smaller */
+  .sos-min{position:absolute;width:48px;height:48px;border-radius:50%;background:#fff;
+    border:1.5px solid rgba(230,57,70,.5);display:flex;align-items:center;justify-content:center;
+    color:var(--red);font-weight:800;font-size:13px;letter-spacing:.5px;cursor:pointer;
+    box-shadow:0 4px 14px rgba(21,35,59,.14);z-index:60;}
+  .sos-min:active{transform:scale(.94);}
+
+  /* lighter, more compact bottom sheet */
+  #s-home .sheet{border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(21,35,59,.10);padding:14px 22px 84px;}
+  #s-home .sheet h2{font-size:18px;font-weight:700;}
+  #s-home .sheet .btn-red{height:50px;padding:0;font-size:16px;font-weight:700;
+    box-shadow:0 6px 16px rgba(230,57,70,.22);}
+
+  /* refined location card */
+  .loc-card{background:#fff;border:1px solid var(--grey-line);border-radius:16px;
+    box-shadow:0 4px 16px rgba(21,35,59,.08);padding:11px 14px;}
+  .icon-btn{width:42px;height:42px;border-radius:12px;background:#fff;border:1px solid var(--grey-line);
+    display:flex;align-items:center;justify-content:center;color:var(--navy);cursor:pointer;
+    box-shadow:0 4px 14px rgba(21,35,59,.08);}
+
+  /* outline bottom nav */
+  .bottomnav .navitem{color:#9AA3B2;}
+  .bottomnav .navitem.on{color:var(--red);}
+  .bottomnav .navitem .icon{width:21px;height:21px;margin-bottom:1px;}
+
+  /* ===== live map realism ===== */
+  /* calm pulse around user dot */
+  .userpulse{position:absolute;width:16px;height:16px;border-radius:50%;
+    transform:translate(-50%,-50%);z-index:6;pointer-events:none;}
+  .userpulse::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:rgba(42,107,224,.30);animation:userping 2.6s ease-out infinite;}
+  @keyframes userping{0%{transform:scale(1);opacity:.6;}100%{transform:scale(5.5);opacity:0;}}
+
+  /* ambulance marker — minimal van glyph, subtle drift */
+  .ambmk{position:absolute;width:34px;height:34px;border-radius:50%;background:#fff;
+    display:flex;align-items:center;justify-content:center;line-height:0;cursor:pointer;z-index:8;
+    box-shadow:0 2px 7px rgba(21,35,59,.26);transform:translate(-50%,-50%);}
+  .ambmk svg{position:static;inset:auto;display:block;width:16px;height:16px;margin:0;padding:0;
+    stroke:var(--navy);stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .ambmk.near{box-shadow:0 0 0 3px rgba(230,57,70,.16),0 2px 8px rgba(21,35,59,.28);}
+  .ambmk.near svg{stroke:var(--red);}
+  .ambmk:active{transform:translate(-50%,-50%) scale(.9);}
+  @keyframes drift1{0%,100%{margin:0 0;}50%{margin:-5px 0 0 4px;}}
+  @keyframes drift2{0%,100%{margin:0 0;}50%{margin:4px 0 0 -5px;}}
+  @keyframes drift3{0%,100%{margin:0 0;}50%{margin:-3px 0 0 -4px;}}
+
+  /* ETA pill on map */
+  .eta-pill{position:absolute;transform:translate(-50%,-140%);background:var(--navy);color:#fff;
+    font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;z-index:9;white-space:nowrap;
+    box-shadow:0 3px 8px rgba(21,35,59,.28);}
+  .eta-pill::after{content:"";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);
+    border:4px solid transparent;border-top-color:var(--navy);}
+
+  /* road labels */
+  .road{position:absolute;font-size:9.5px;font-weight:600;color:#9AA3B2;letter-spacing:.3px;
+    z-index:4;pointer-events:none;white-space:nowrap;}
+  .road.vert{transform:rotate(-90deg);transform-origin:left center;}
+
+  /* tap preview card */
+  .amb-preview{position:absolute;left:18px;right:18px;bottom:14px;z-index:55;
+    background:#fff;border:1px solid var(--grey-line);border-radius:18px;padding:13px 14px;
+    box-shadow:0 -4px 24px rgba(21,35,59,.16);
+    transform:translateY(140%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+  .amb-preview.show{transform:translateY(0);}
+  /* selected marker emphasis + dimmed generic CTA */
+  .ambmk.sel{box-shadow:0 0 0 4px rgba(230,57,70,.22),0 3px 10px rgba(21,35,59,.3);}
+  .ambmk.sel svg{stroke:var(--red);}
+  /* collapse generic CTA when a vehicle is selected — preview card takes over */
+  #homeCTA{overflow:hidden;transition:max-height .28s ease,opacity .2s ease,margin .28s ease;
+    max-height:140px;opacity:1;}
+  #homeCTA.collapsed{max-height:0;opacity:0;margin:0;pointer-events:none;}
+
+  /* ===== profile menu rows ===== */
+  .menu-item{display:flex;align-items:center;gap:14px;padding:14px 12px;cursor:pointer;
+    border-bottom:1px solid var(--grey-line);color:var(--navy);font-weight:600;font-size:15px;}
+  .menu-item:last-child{border-bottom:none;}
+  .menu-item .icon{color:var(--navy-soft);}
+  .menu-item span{flex:1;}
+  .menu-item i{width:8px;height:8px;border-right:1.6px solid #C2CAD6;border-bottom:1.6px solid #C2CAD6;
+    transform:rotate(-45deg);}
+  .menu-item.danger{color:var(--red);}
+  .menu-item.danger .icon{color:var(--red);}
+  .menu-item:active{background:var(--grey-card);}
+
+  /* ===== notification cards ===== */
+  .notif{display:flex;gap:13px;padding:14px;border:1px solid var(--grey-line);border-radius:16px;
+    margin-bottom:10px;cursor:pointer;transition:background .15s;}
+  .notif:active{background:var(--grey-card);}
+  .notif b{font-size:14.5px;color:var(--navy);}
+  .nic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .nic .icon{stroke-width:1.8;}
+  .nic-red{background:rgba(230,57,70,.10);color:var(--red);}
+  .nic-green{background:rgba(43,182,115,.12);color:#1d8f5a;}
+  .nic-amber{background:rgba(244,163,64,.16);color:#c97c12;}
+  .nic-navy{background:var(--grey-card);color:var(--navy);}
+  .ntime{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;color:var(--grey-text);}
+
+  /* empty states */
+  .empty{text-align:center;padding:60px 20px;color:var(--grey-text);}
+  .empty .icon{width:48px;height:48px;margin:0 auto 14px;stroke:#C2CAD6;}
+  .empty b{display:block;color:var(--navy-soft);font-size:15px;}
+
+  /* ===== compact hospital cards ===== */
+  .hosp-card{border:1px solid var(--grey-line);border-radius:16px;padding:12px 13px;margin-bottom:10px;
+    cursor:pointer;background:#fff;transition:background .15s;}
+  .hosp-card:active{background:var(--grey-card);}
+  .hosp-card h3{font-size:14.5px;}
+  .hosp-card .hist-ic{width:40px;height:40px;}
+  .hosp-act{width:40px;height:40px;border-radius:11px;border:1.4px solid var(--grey-line);background:#fff;
+    display:flex;align-items:center;justify-content:center;color:var(--navy);cursor:pointer;flex:none;}
+  .hosp-act .icon{width:17px;height:17px;}
+  .hosp-book{flex:1;height:40px;border:none;border-radius:11px;background:var(--red);color:#fff;
+    font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;
+    justify-content:center;gap:7px;}
+  .hosp-book .icon{width:16px;height:16px;stroke:#fff;}
+
+  /* ===== horizontal scrollable filter chips ===== */
+  .chiprow{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding-bottom:2px;}
+  .chiprow::-webkit-scrollbar{display:none;}
+  .chiprow .chip{flex:none;white-space:nowrap;height:35px;padding:0 13px;font-size:13px;
+    display:inline-flex;align-items:center;}
+
+  /* Set Route — lighter hospital suggestion rows */
+  .route-hosp{display:flex;align-items:center;gap:12px;padding:11px 4px;cursor:pointer;
+    border-bottom:1px solid var(--grey-line);}
+  .route-hosp:last-child{border-bottom:none;}
+  .route-hosp:active{opacity:.6;}
+  .route-hosp.sel{background:rgba(230,57,70,.05);border-radius:12px;
+    box-shadow:inset 0 0 0 1.5px rgba(230,57,70,.4);padding-left:10px;padding-right:10px;}
+  .route-hosp.sel .icon{color:var(--red);}
+  .route-hosp .icon{width:20px;height:20px;color:var(--grey-text);flex:none;}
+  .route-hosp b{font-size:14px;color:var(--navy);font-weight:600;}
+  .route-hosp .center b{font-size:13px;}
+
+  /* ===== live search steps ===== */
+  .srch-step{display:flex;align-items:center;gap:12px;padding:11px 0;font-size:14px;font-weight:600;
+    color:var(--grey-text);transition:color .3s;}
+  .srch-step+.srch-step{border-top:1px solid var(--grey-line);}
+  .ss-ic{width:20px;height:20px;border-radius:50%;flex:none;box-sizing:border-box;
+    display:flex;align-items:center;justify-content:center;}
+  .srch-step.pending .ss-ic{border:2px solid var(--grey-line);}
+  .srch-step.active{color:var(--navy);}
+  .srch-step.active .ss-ic{border:2px solid var(--grey-line);border-top-color:var(--red);animation:spin .8s linear infinite;}
+  .srch-step.done{color:var(--navy);}
+  .srch-step.done .ss-ic{background:var(--green);border:none;}
+
+  /* ===== driver photo placeholder ===== */
+  .driver-photo{width:62px;height:62px;border-radius:50%;flex:none;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#CBD7E6,#9DB1C7);display:flex;align-items:flex-end;justify-content:center;
+    box-shadow:inset 0 -3px 10px rgba(0,0,0,.07);}
+  .driver-photo svg{width:46px;height:46px;fill:#fff;opacity:.92;}
+  .driver-photo .ver-dot{position:absolute;right:1px;bottom:1px;width:15px;height:15px;border-radius:50%;
+    background:var(--green);border:2.5px solid #fff;}
+
+  /* ===== compact horizontal progress stepper ===== */
+  .hstep{display:flex;}
+  .hstep .node{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;
+    font-size:10px;font-weight:600;color:var(--grey-text);text-align:center;}
+  .hstep .node .dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--grey-line);
+    background:#fff;z-index:2;box-sizing:border-box;}
+  .hstep .node::before{content:"";position:absolute;top:6.5px;right:50%;width:100%;height:2px;
+    background:var(--grey-line);z-index:1;}
+  .hstep .node:first-child::before{display:none;}
+  .hstep .node.done{color:var(--navy);}
+  .hstep .node.done .dot{background:var(--green);border-color:var(--green);}
+  .hstep .node.done::before{background:var(--green);}
+  .hstep .node.now{color:var(--red);font-weight:800;}
+  .hstep .node.now .dot{border-color:var(--red);background:var(--red);box-shadow:0 0 0 4px rgba(230,57,70,.15);}
+  .hstep .node.now::before{background:var(--green);}
+  .hstep{gap:2px;}
+  .hstep .node{padding:0 1px;letter-spacing:.1px;}
+
+  /* neutral secondary link */
+  .link-neutral{display:inline-block;margin-top:4px;font-size:12px;font-weight:600;
+    color:var(--grey-text);cursor:pointer;}
+  .link-neutral:active{opacity:.6;}
+
+  /* ===== Smart Booking sheet (2-tap booking) ===== */
+  .scrim{position:absolute;inset:0;background:rgba(14,22,38,.45);opacity:0;visibility:hidden;
+    transition:opacity .3s,visibility .3s;z-index:65;}
+  .scrim.show{opacity:1;visibility:visible;}
+  .smart-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;
+    box-shadow:0 -10px 40px rgba(21,35,59,.2);z-index:70;padding:12px 20px 20px;
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);}
+  .smart-sheet.show{transform:translateY(0);}
+  .reco-card{position:relative;border:1.5px solid rgba(230,57,70,.35);border-radius:16px;
+    padding:13px 14px;background:rgba(230,57,70,.03);}
+  .reco-tag{position:absolute;top:-9px;left:14px;background:var(--red);color:#fff;font-size:10px;
+    font-weight:800;letter-spacing:.4px;padding:3px 9px;border-radius:20px;}
+  .smart-link{display:flex;align-items:center;justify-content:space-between;padding:11px 2px;
+    font-size:13.5px;font-weight:600;color:var(--navy);cursor:pointer;}
+  .smart-link .chev{width:8px;height:8px;border-right:1.6px solid #C2CAD6;border-bottom:1.6px solid #C2CAD6;transform:rotate(-45deg);}
+  /* de-emphasized secondary action */
+  .smart-link.sec{color:var(--grey-text);font-size:12.5px;font-weight:600;padding:9px 2px;}
+  .smart-link.sec:active{opacity:.6;}
+
+  /* ===== unified inline icon (emoji replacement) ===== */
+  .i{display:inline-flex;align-items:center;justify-content:center;
+    width:1.05em;height:1.05em;vertical-align:-.16em;}
+  .i svg{width:100%;height:100%;stroke:currentColor;stroke-width:1.7;fill:none;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .i.star svg{stroke-width:1.6;}
+  .flagcode{font-size:.7em;font-weight:800;letter-spacing:.5px;color:var(--navy);
+    background:var(--grey-card);border-radius:5px;padding:2px 5px;}
+</style>
+</head>
+<body>
+
+<div class="stage">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="statusbar" id="statusbar">
+    <span id="sb-time">9:41</span>
+    <span class="sb-icons">▮▮▮ &nbsp;⌃ &nbsp;100%</span>
+  </div>
+
+  <!-- ============ 1. SPLASH ============ -->
+  <section class="screen splash active" id="s-splash">
+    <div>
+      <div class="logo">🚑</div>
+      <h1 style="color:#fff;font-size:34px;">AmbuCare</h1>
+      <p style="color:rgba(255,255,255,.9);font-weight:600;letter-spacing:3px;margin-top:4px;">R A P I D A I D</p>
+      <p style="color:rgba(255,255,255,.85);margin-top:20px;font-size:15px;">Emergency help, 2 taps away</p>
+    </div>
+    <div style="position:absolute;bottom:60px;left:0;right:0;padding:0 30px;">
+      <button class="btn" style="background:#fff;color:var(--red);" onclick="go('s-login')">Get Started →</button>
+      <p class="center" style="color:rgba(255,255,255,.8);margin-top:16px;font-size:13px;">Trusted by 2.4M+ patients · ⭐ 4.9</p>
+    </div>
+  </section>
+
+  <!-- ============ 2. LOGIN / REGISTER ============ -->
+  <section class="screen" id="s-login">
+    <div class="scroll pt-status">
+      <div class="pad" style="padding-top:36px;">
+        <div class="login-logo">🚑</div>
+        <h1 style="margin-top:14px;">Welcome back</h1>
+        <p class="sub" style="margin-top:4px;">Sign in to continue</p>
+
+        <div style="margin-top:22px;">
+          <div class="field">
+            <label>Phone number</label>
+            <div class="input-row">
+              <span class="pill-prefix"><span class="flagcode">IN</span> +91</span>
+              <input id="loginPhone" class="input" type="tel" placeholder="98765 43210" value="98765 43210">
+            </div>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="loginPass" class="input" type="password" placeholder="••••••••" value="password">
+          </div>
+          <div class="row between small" style="margin:2px 0 18px;">
+            <label class="row" style="gap:6px;color:var(--navy-soft);"><input type="checkbox" checked> Remember me</label>
+            <span class="muted" style="font-weight:600;cursor:pointer;" onclick="go('s-forgot')">Forgot password?</span>
+          </div>
+          <button class="btn btn-red" onclick="loginPassword()">Login with Password</button>
+
+          <div class="divider" style="margin:14px 0;">or</div>
+
+          <button class="btn btn-outline" onclick="loginOtp()">📱 Login with OTP</button>
+
+          <p class="center small" style="margin-top:18px;color:var(--navy-soft);">
+            New here? <span class="textlink" onclick="createAccount()">Create an account</span>
+          </p>
+        </div>
+        <p class="center small muted" style="margin-top:22px;line-height:1.6;">By continuing you agree to our<br><b style="color:var(--navy-soft);">Terms</b> & <b style="color:var(--navy-soft);">Privacy Policy</b></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2b. FORGOT PASSWORD ============ -->
+  <section class="screen" id="s-forgot">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-login',true)">←</button><h2>Forgot Password</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="login-logo" style="font-size:28px;">🔑</div>
+        <h1 style="font-size:28px;margin-top:14px;">Reset your password</h1>
+        <p class="sub" style="margin-top:4px;">Enter your registered phone number and we'll send a reset OTP.</p>
+        <div class="field" style="margin-top:22px;">
+          <label>Phone number</label>
+          <div class="input-row">
+            <span class="pill-prefix" style="height:48px;display:flex;align-items:center;"><span class="flagcode">IN</span> +91</span>
+            <input id="forgotPhone" class="input" style="height:48px;" type="tel" placeholder="98765 43210" value="98765 43210">
+          </div>
+        </div>
+        <button class="btn btn-red" style="height:48px;padding:0;" onclick="sendResetOtp()">Send reset OTP</button>
+        <p class="center small" style="margin-top:18px;color:var(--navy-soft);">Remembered it? <span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Back to login</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2c. RESET PASSWORD ============ -->
+  <section class="screen" id="s-reset">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-login',true)">←</button><h2>New Password</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="login-logo" style="font-size:28px;">🔒</div>
+        <h1 style="font-size:28px;margin-top:14px;">Set a new password</h1>
+        <p class="sub" style="margin-top:4px;">Choose a strong password you'll remember.</p>
+        <div style="margin-top:22px;">
+          <div class="field"><label>New password</label><input id="newPass" class="input" style="height:48px;" type="password" placeholder="••••••••"></div>
+          <div class="field"><label>Confirm password</label><input id="confirmPass" class="input" style="height:48px;" type="password" placeholder="••••••••"></div>
+        </div>
+        <button class="btn btn-red" style="height:48px;padding:0;margin-top:6px;" onclick="resetPassword()">Reset Password</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2d. REGISTRATION ============ -->
+  <section class="screen" id="s-register">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-login',true)">←</button><h2>Create Account</h2></div>
+    <div class="obar-wrap"><div class="obar"><i style="width:20%"></i></div><div class="obar-step">Step 1 of 5</div></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:10px;">
+        <h1 style="font-size:28px;">Create your account</h1>
+        <p class="sub" style="margin-top:4px;">Complete registration in under a minute.</p>
+        <div style="margin-top:16px;">
+          <div class="field"><label>Full name</label><input id="regName" class="input" style="height:48px;" placeholder="Aarav Sharma" value="Aarav Sharma"></div>
+          <div class="field"><label>Phone number</label>
+            <div class="input-row"><span class="pill-prefix" style="height:48px;display:flex;align-items:center;"><span class="flagcode">IN</span> +91</span>
+              <input id="regPhone" class="input" style="height:48px;" type="tel" placeholder="98765 43210" value="98765 43210"></div>
+          </div>
+          <div class="field"><label>Email</label><input id="regEmail" class="input" style="height:48px;" type="email" placeholder="you@email.com" value="aarav@email.com"></div>
+          <div class="field"><label>Password</label><input id="regPass" class="input" style="height:48px;" type="password" placeholder="••••••••" value="password"></div>
+        </div>
+        <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="submitRegister()">Create Account</button>
+        <p class="center small" style="margin-top:16px;color:var(--navy-soft);">Already have an account? <span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Login</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. OTP ============ -->
+  <section class="screen" id="s-otp">
+    <div class="topbar pt-status"><button class="back-btn" onclick="changeNumber()">←</button><h2>Verify</h2></div>
+    <div class="obar-wrap"><div class="obar"><i style="width:40%"></i></div><div class="obar-step">Step 2 of 5</div></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:10px;">
+        <h1>Enter the code</h1>
+        <p class="sub">6-digit code sent to <b style="color:var(--navy);">+91 98765 43210</b></p>
+        <p class="small" style="margin-top:4px;"><span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="changeNumber()">Change Number</span></p>
+
+        <div class="otp-row" id="otpRow" style="margin-top:24px;">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <p class="center muted small" style="margin-top:18px;">Didn't get it? Resend in <b style="color:var(--red);" id="resendTimer">00:24</b></p>
+
+        <button class="btn btn-red" style="margin-top:22px;" onclick="otpVerified()">Verify & Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. PROFILE SETUP ============ -->
+  <section class="screen" id="s-profile">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-otp',true)">←</button><h2>Medical Profile</h2></div>
+    <div class="obar-wrap"><div class="obar"><i style="width:60%"></i></div><div class="obar-step">Step 3 of 5</div></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:10px;">
+        <p class="sub" style="margin-top:0;">Helps paramedics treat you faster in an emergency.</p>
+        <div class="photo-up" style="margin-top:14px;width:88px;height:88px;font-size:28px;" onclick="toast('Photo uploaded')">👤<div class="cam">📷</div></div>
+        <p class="center small muted" style="margin-top:8px;">Add profile photo</p>
+
+        <div style="margin-top:14px;">
+          <div class="field" style="margin-bottom:12px;"><label>Full name</label><input class="input" style="height:48px;" value="Aarav Sharma"></div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Blood group</label>
+            <div class="bloodgrid">
+              <span class="chip">A+</span><span class="chip on">O+</span><span class="chip">B+</span><span class="chip">AB+</span>
+              <span class="chip">A−</span><span class="chip">O−</span><span class="chip">B−</span><span class="chip">AB−</span>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:12px;"><label>Known allergies</label><input class="input" style="height:48px;" placeholder="e.g. Penicillin, Peanuts" value="Penicillin"></div>
+          <div class="field" style="margin-bottom:12px;"><label>Medical conditions</label><input class="input" style="height:48px;" placeholder="e.g. Asthma, Diabetes" value="Asthma, Hypertension"></div>
+          <div class="field" style="margin-bottom:12px;"><label>Emergency contact</label>
+            <div class="input-row"><span class="pill-prefix" style="height:48px;display:flex;align-items:center;">+91</span><input class="input" style="height:48px;" value="99887 76655"></div>
+          </div>
+        </div>
+        <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="go('s-perm-loc')">Save & Continue</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="go('s-perm-loc')">Skip for now</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5a. LOCATION PERMISSION ============ -->
+  <section class="screen" id="s-perm-loc">
+    <div class="obar-wrap pt-status" style="padding-top:58px;"><div class="obar"><i style="width:80%"></i></div><div class="obar-step">Step 4 of 5</div></div>
+    <div class="scroll center">
+      <div class="pad" style="display:flex;flex-direction:column;height:100%;justify-content:center;">
+        <div style="font-size:64px;margin-bottom:8px;">📍</div>
+        <h1>Enable Location Access</h1>
+        <p class="sub" style="max-width:285px;margin:10px auto 0;">We use your location to find and dispatch the nearest ambulance during emergencies.</p>
+        <div class="card-w" style="margin:24px auto;max-width:300px;text-align:left;">
+          <div class="row"><span style="font-size:22px;">⚡</span><div><b>Faster dispatch</b><p class="small muted">Nearest unit auto-assigned</p></div></div>
+          <div class="row" style="margin-top:14px;"><span style="font-size:22px;">🧭</span><div><b>Live navigation</b><p class="small muted">Driver finds you instantly</p></div></div>
+        </div>
+        <button class="btn btn-red" onclick="go('s-perm-notif')">Allow Location</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="go('s-perm-notif')">Not Now</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5b. NOTIFICATION PERMISSION ============ -->
+  <section class="screen" id="s-perm-notif">
+    <div class="obar-wrap pt-status" style="padding-top:58px;"><div class="obar"><i style="width:100%"></i></div><div class="obar-step">Step 5 of 5</div></div>
+    <div class="scroll center">
+      <div class="pad" style="display:flex;flex-direction:column;height:100%;justify-content:center;">
+        <div style="font-size:64px;margin-bottom:8px;">🔔</div>
+        <h1>Stay Updated</h1>
+        <p class="sub" style="max-width:285px;margin:10px auto 0;">Receive ambulance arrival alerts, ride updates, and emergency notifications.</p>
+        <div class="card-w" style="margin:24px auto;max-width:300px;text-align:left;">
+          <div class="row"><span style="font-size:22px;">🚑</span><div><b>Driver assigned & ETA</b><p class="small muted">Know who's coming</p></div></div>
+          <div class="row" style="margin-top:14px;"><span style="font-size:22px;">📍</span><div><b>Arrival alerts</b><p class="small muted">"Ambulance reaching you"</p></div></div>
+        </div>
+        <button class="btn btn-red" onclick="go('s-home')">Enable Notifications</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="go('s-home')">Maybe Later</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. HOME ============ -->
+  <section class="screen" id="s-home">
+    <div class="map" id="homeMap">
+      <svg viewBox="0 0 390 700" preserveAspectRatio="xMidYMid slice">
+        <rect width="390" height="700" fill="#EAEDF1"/>
+        <!-- road base -->
+        <path d="M-20 180 H410 M-20 360 H410 M-20 520 H410" stroke="#DDE2E8" stroke-width="22"/>
+        <path d="M90 -20 V720 M230 -20 V720 M320 -20 V720" stroke="#DDE2E8" stroke-width="18"/>
+        <!-- light traffic segments (desaturated) -->
+        <path d="M-20 360 H160" stroke="#E7C9A8" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+        <path d="M230 200 V420" stroke="#CFD9C8" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+        <!-- lane dashes -->
+        <path d="M-20 180 H410" stroke="#fff" stroke-width="2.5" stroke-dasharray="9 13"/>
+        <path d="M230 -20 V720" stroke="#fff" stroke-width="2.5" stroke-dasharray="9 13"/>
+        <!-- blocks / parks -->
+        <circle cx="60" cy="120" r="40" fill="#DEE5DF"/><circle cx="340" cy="440" r="54" fill="#DEE5DF"/>
+        <rect x="120" y="240" width="80" height="70" rx="6" fill="#E2E6EC"/>
+        <rect x="260" y="540" width="90" height="80" rx="6" fill="#E2E6EC"/>
+        <!-- route: nearest ambulance -> user -->
+        <path d="M117 238 Q150 300 195 350" stroke="#E63946" stroke-width="3" fill="none"
+          stroke-linecap="round" stroke-dasharray="2 9" opacity=".75"/>
+      </svg>
+
+      <!-- road names -->
+      <div class="road" style="left:14px;top:172px;">Sector 18 Rd</div>
+      <div class="road" style="left:14px;top:512px;">Main Rd</div>
+      <div class="road vert" style="left:226px;top:120px;">Hospital Lane</div>
+
+      <!-- ambulance markers (minimal van glyph) -->
+      <div class="ambmk near" style="left:30%;top:34%;animation:drift1 7s ease-in-out infinite;"
+        onclick="showAmb('ALS','3 min','4.9','0.8 km',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/><path d="M5.5 9v3M4 10.5h3"/></svg>
+      </div>
+      <div class="ambmk" style="left:72%;top:52%;animation:drift2 8.5s ease-in-out infinite;"
+        onclick="showAmb('BLS','6 min','4.8','1.6 km',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/><path d="M5.5 9v3M4 10.5h3"/></svg>
+      </div>
+      <div class="ambmk" style="left:48%;top:66%;animation:drift3 9s ease-in-out infinite;"
+        onclick="showAmb('BLS','8 min','4.7','2.4 km',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/><path d="M5.5 9v3M4 10.5h3"/></svg>
+      </div>
+      <div class="ambmk" style="left:84%;top:30%;animation:drift1 8s ease-in-out infinite;"
+        onclick="showAmb('Neonatal','11 min','5.0','3.3 km',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/><path d="M5.5 9v3M4 10.5h3"/></svg>
+      </div>
+
+      <!-- ETA pill near nearest unit -->
+      <div class="eta-pill" style="left:30%;top:32%;">3 min</div>
+
+      <!-- user location -->
+      <div class="userpulse" style="left:50%;top:50%;"></div>
+      <div class="userdot" style="left:50%;top:50%;"></div>
+    </div>
+
+    <!-- tap preview card (compact, Uber-style) -->
+    <div class="amb-preview" id="ambPreview">
+      <div class="row between" style="gap:10px;">
+        <div class="row" style="gap:10px;min-width:0;">
+          <div class="ambmk" style="position:static;transform:none;width:30px;height:30px;">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/><path d="M5.5 9v3M4 10.5h3"/></svg>
+          </div>
+          <div style="min-width:0;">
+            <b id="apType" style="font-size:15.5px;">ALS Ambulance</b>
+            <p class="small muted" style="margin-top:5px;font-size:12.5px;"><span id="apRating">⭐ 4.9</span> · <span id="apDist">0.8 km</span> · <b style="color:var(--red);" id="apEta">3 min</b></p>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="gap:9px;margin-top:13px;">
+        <button class="btn btn-outline btn-sm" style="height:42px;flex:1;font-size:13px;" onclick="go('s-amb-type')">View Details</button>
+        <button class="btn btn-red btn-sm" style="height:42px;flex:1.4;font-size:13px;" onclick="selectedHospital=null;hideAmbPreview();go('s-pickup')">Select Ambulance</button>
+      </div>
+    </div>
+
+    <!-- top bar: location card + bell -->
+    <div style="position:absolute;top:54px;left:18px;right:18px;z-index:30;" class="row">
+      <div class="loc-card row" style="flex:1;gap:11px;">
+        <span class="avatar" style="width:32px;height:32px;font-size:12px;">AS</span>
+        <div style="flex:1;line-height:1.25;">
+          <p class="small muted" style="margin:0;font-size:11px;">Current location</p>
+          <b style="font-size:14px;color:var(--navy);">Sector 18, Noida</b>
+        </div>
+        <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#9AA3B2;"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+      <button class="icon-btn" style="margin-left:10px;" onclick="go('s-notifications')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      </button>
+    </div>
+
+    <!-- recenter -->
+    <button class="icon-btn" style="position:absolute;right:18px;top:344px;" onclick="recenter()">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <!-- SOS: clean, always visible -->
+    <div class="sos-min" style="right:20px;top:400px;" onclick="toast('SOS sent — help dispatched to your location')">SOS</div>
+
+    <!-- bottom sheet -->
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="row between" style="margin-bottom:3px;">
+        <h2>Book an ambulance</h2>
+        <span class="badge badge-green">● Live</span>
+      </div>
+      <div class="row" style="gap:7px;margin-bottom:13px;">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--red);"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <p class="small" style="color:var(--navy-soft);"><b style="color:var(--navy);">Nearest ambulance: 3 min away</b> · 6 units available nearby</p>
+      </div>
+      <div id="homeCTA">
+        <button class="btn btn-red" id="homeBookBtn" onclick="openSmartSheet()">Book Ambulance</button>
+        <div class="row" style="gap:10px;margin-top:10px;">
+          <button class="btn btn-outline btn-sm" style="gap:7px;" onclick="go('s-hospitals')">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>Nearby Hospitals</button>
+          <button class="btn btn-outline btn-sm" style="gap:7px;" onclick="toast('Calling 108…')">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call 108</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottomnav" style="position:absolute;bottom:0;left:0;right:0;">
+      <div class="navitem on">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Home</div>
+      <div class="navitem" onclick="go('s-history')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Rides</div>
+      <div class="navitem" onclick="go('s-profile-view')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+
+    <!-- ===== Smart Booking bottom sheet ===== -->
+    <div class="scrim" id="smartScrim" onclick="closeSmartSheet()"></div>
+    <div class="smart-sheet" id="smartSheet">
+      <div class="grab"></div>
+      <div class="row between" style="margin-bottom:2px;">
+        <h2 style="font-size:18px;">Confirm your ambulance</h2>
+        <span class="badge badge-green">● Live</span>
+      </div>
+      <p class="muted small" style="margin-bottom:13px;">Auto-selected for the fastest emergency response.</p>
+
+      <!-- recommended ambulance -->
+      <div class="reco-card">
+        <span class="reco-tag" id="recoTag">RECOMMENDED</span>
+        <div class="row between">
+          <div class="row" style="gap:11px;">
+            <div class="hist-ic" style="width:40px;height:40px;" id="recoIcon">🚑</div>
+            <div><h3 style="font-size:15px;" id="recoName">BLS Ambulance</h3><p class="small muted" style="margin-top:2px;" id="recoSub">Basic Life Support · ⭐ 4.8</p></div>
+          </div>
+          <div class="center"><span class="small muted">ETA</span><br><b style="color:var(--red);font-size:16px;" id="recoEta">4 min</b></div>
+        </div>
+      </div>
+      <div class="smart-link sec" onclick="closeSmartSheet();selectedHospital=null;go('s-amb-type')">
+        <span>Need advanced care? Change Ambulance Type</span><i class="chev"></i></div>
+
+      <!-- pickup + destination (auto) -->
+      <div class="card" style="padding:12px 14px;margin-top:6px;">
+        <div class="row"><span style="color:var(--green);font-size:14px;">●</span>
+          <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">PICKUP · AUTO-DETECTED</p><b style="font-size:14px;">Current Location · Sector 18, Noida</b></div></div>
+        <div style="display:flex;align-items:center;gap:8px;margin:8px 0;">
+          <span style="width:14px;text-align:center;color:#C2CAD6;">⋮</span><div style="height:1px;flex:1;background:var(--grey-line);"></div></div>
+        <div class="row"><svg class="icon icon-sm" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--red);"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">DESTINATION · NEAREST EMERGENCY</p><b style="font-size:14px;" id="smartDestName">Fortis Hospital, Noida · 2.4 km</b></div></div>
+      </div>
+      <div class="smart-link" onclick="closeSmartSheet();go('s-pickup')">
+        <span>Change Destination</span><i class="chev"></i></div>
+
+      <!-- fare -->
+      <div class="card-w" style="padding:11px 14px;margin-top:6px;">
+        <div class="row between"><b>Total Fare</b><b style="font-size:18px;" id="smartTotal">₹899</b></div>
+        <div class="row between" onclick="toggleFare('smartFareDetail','smartFareChev')" style="cursor:pointer;margin-top:8px;">
+          <span class="small" style="color:var(--red);font-weight:700;">View Fare Details</span>
+          <svg id="smartFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div id="smartFareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;">
+          <div class="lineitem" style="padding:6px 0;"><span>Base fare</span><span id="fareBase">₹499</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span id="smartDistLabel">Distance (2.4 km × ₹120)</span><span id="smartDistVal">₹288</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span>Medical equipment</span><span>₹150</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span>Taxes & GST (5%)</span><span>₹47</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span style="color:var(--green);">Promo · FIRSTAID</span><span style="color:var(--green);">−₹85</span></div>
+        </div>
+      </div>
+
+      <button class="btn btn-red" id="smartCta" style="height:52px;margin-top:14px;" onclick="confirmSmart()">Confirm Booking · ₹899</button>
+      <p class="center small muted" style="margin-top:8px;">Pay after the ride · Free cancellation in 2 min</p>
+    </div>
+  </section>
+
+  <!-- ============ 7. AMBULANCE TYPE ============ -->
+  <section class="screen" id="s-amb-type">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-home',true)">←</button><h2>Choose Ambulance</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <p class="sub" style="margin-top:0;">Pick the care level you need. Fares & ETA are live.</p>
+
+        <!-- BLS -->
+        <div class="card-w" style="margin-top:16px;" onclick="selectAmbType('bls')">
+          <div class="row between">
+            <div class="row"><div class="hist-ic">🚑</div><div><h3>BLS — Basic Life Support</h3><p class="small muted">Oxygen, first aid, trained EMT</p></div></div>
+            <span class="badge badge-green">⭐ 4.8</span>
+          </div>
+          <div class="row between" style="margin-top:14px;">
+            <div><span class="muted small">Fare</span><br><b style="font-size:18px;">₹899</b></div>
+            <div><span class="muted small">ETA</span><br><b style="font-size:18px;">4 min</b></div>
+            <button class="btn btn-red btn-sm" style="width:auto;padding:11px 26px;" onclick="event.stopPropagation();selectAmbType('bls')">Select</button>
+          </div>
+        </div>
+
+        <!-- ALS -->
+        <div class="card-w" style="margin-top:14px;" onclick="selectAmbType('als')">
+          <div class="row between">
+            <div class="row"><div class="hist-ic">🏥</div><div><h3>ALS — Advanced Life Support</h3><p class="small muted">Ventilator, cardiac monitor, paramedic</p></div></div>
+            <span class="badge badge-green">⭐ 4.9</span>
+          </div>
+          <div class="row between" style="margin-top:14px;">
+            <div><span class="muted small">Fare</span><br><b style="font-size:18px;">₹1,499</b></div>
+            <div><span class="muted small">ETA</span><br><b style="font-size:18px;">6 min</b></div>
+            <button class="btn btn-red btn-sm" style="width:auto;padding:11px 26px;" onclick="event.stopPropagation();selectAmbType('als')">Select</button>
+          </div>
+        </div>
+
+        <!-- Neonatal -->
+        <div class="card-w" style="margin-top:14px;" onclick="selectAmbType('neo')">
+          <div class="row between">
+            <div class="row"><div class="hist-ic">👶</div><div><h3>Neonatal</h3><p class="small muted">Infant incubator, NICU-trained staff</p></div></div>
+            <span class="badge badge-green">⭐ 5.0</span>
+          </div>
+          <div class="row between" style="margin-top:14px;">
+            <div><span class="muted small">Fare</span><br><b style="font-size:18px;">₹2,199</b></div>
+            <div><span class="muted small">ETA</span><br><b style="font-size:18px;">9 min</b></div>
+            <button class="btn btn-red btn-sm" style="width:auto;padding:11px 26px;" onclick="event.stopPropagation();selectAmbType('neo')">Select</button>
+          </div>
+        </div>
+
+        <!-- Mortuary -->
+        <div class="card-w" style="margin-top:14px;margin-bottom:20px;" onclick="selectAmbType('mort')">
+          <div class="row between">
+            <div class="row"><div class="hist-ic">🕊️</div><div><h3>Mortuary Van</h3><p class="small muted">Freezer box, respectful transport</p></div></div>
+            <span class="badge badge-amber">⭐ 4.7</span>
+          </div>
+          <div class="row between" style="margin-top:14px;">
+            <div><span class="muted small">Fare</span><br><b style="font-size:18px;">₹1,299</b></div>
+            <div><span class="muted small">ETA</span><br><b style="font-size:18px;">12 min</b></div>
+            <button class="btn btn-red btn-sm" style="width:auto;padding:11px 26px;" onclick="event.stopPropagation();selectAmbType('mort')">Select</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. PICKUP & DESTINATION ============ -->
+  <section class="screen" id="s-pickup">
+    <div class="map" style="bottom:auto;height:38%;">
+      <svg viewBox="0 0 390 320" preserveAspectRatio="xMidYMid slice">
+        <rect width="390" height="320" fill="#EAEDF1"/>
+        <path d="M-20 110 H410 M-20 230 H410" stroke="#DDE2E8" stroke-width="20"/>
+        <path d="M140 -20 V340 M280 -20 V340" stroke="#DDE2E8" stroke-width="18"/>
+        <path d="M70 270 Q160 180 250 120 T360 56" stroke="var(--red)" stroke-width="4" fill="none" stroke-dasharray="2 9" stroke-linecap="round"/>
+      </svg>
+      <div class="map-pin" style="left:18%;top:82%;color:var(--green);">📍</div>
+      <div class="map-pin" style="left:90%;top:22%;">🏥</div>
+      <div class="map-pin" style="left:46%;top:52%;font-size:32px;">📍</div>
+    </div>
+
+    <!-- translucent header overlay -->
+    <div class="topbar pt-status" style="position:absolute;top:0;left:0;right:0;z-index:20;
+      background:linear-gradient(180deg,rgba(255,255,255,.96) 40%,rgba(255,255,255,.7) 80%,transparent);
+      backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);">
+      <button class="back-btn" onclick="backFromRoute()">←</button><h2 style="color:var(--navy);">Set Route</h2>
+    </div>
+
+    <!-- sheet: pinned route / scroll list / sticky CTA -->
+    <div class="sheet" style="top:34%;bottom:0;display:flex;flex-direction:column;padding:0;border-radius:24px 24px 0 0;">
+      <!-- pinned: pickup + destination -->
+      <div style="padding:12px 20px 12px;">
+        <div class="grab"></div>
+        <div class="card-w" style="padding:14px 16px;">
+          <div class="row"><span style="color:var(--green);font-size:16px;">●</span>
+            <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">PICKUP · GPS</p><b style="font-size:15px;">Sector 18, Noida</b></div>
+            <span class="muted small" style="font-weight:700;cursor:pointer;" onclick="toast('Edit pickup')">Edit</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin:10px 0;">
+            <span style="width:16px;text-align:center;color:#C2CAD6;">⋮</span><div style="height:1px;flex:1;background:var(--grey-line);"></div></div>
+          <div class="row"><svg class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">DESTINATION</p>
+              <input id="destInput" class="input" style="border:none;background:transparent;padding:0;font-weight:700;font-size:15px;height:auto;" placeholder="Search hospital / destination" value="Fortis Hospital, Noida"></div></div>
+        </div>
+      </div>
+
+      <!-- scrollable hospital suggestions (de-emphasized) -->
+      <div class="scroll" style="padding:0 20px;">
+        <p class="small muted" style="font-weight:700;margin-bottom:6px;letter-spacing:.3px;">NEAREST HOSPITALS</p>
+        <div class="route-hosp" onclick="selectDest(0)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>
+          <div style="flex:1;"><b>Fortis Hospital</b><p class="small muted">Multi-speciality · ⭐ 4.6</p></div>
+          <div class="center small"><b>2.4 km</b><br><span class="muted">6 min</span></div></div>
+        <div class="route-hosp" onclick="selectDest(1)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>
+          <div style="flex:1;"><b>Max Super Speciality</b><p class="small muted">Emergency 24/7 · ⭐ 4.5</p></div>
+          <div class="center small"><b>3.1 km</b><br><span class="muted">9 min</span></div></div>
+        <div class="route-hosp" onclick="selectDest(2)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>
+          <div style="flex:1;"><b>Apollo Clinic</b><p class="small muted">Trauma centre · ⭐ 4.7</p></div>
+          <div class="center small"><b>4.0 km</b><br><span class="muted">11 min</span></div></div>
+        <div class="route-hosp" onclick="selectDest(3)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>
+          <div style="flex:1;"><b>AIIMS Trauma Centre</b><p class="small muted">Level-1 trauma · ⭐ 4.4</p></div>
+          <div class="center small"><b>5.6 km</b><br><span class="muted">15 min</span></div></div>
+      </div>
+
+      <!-- sticky footer CTA -->
+      <div style="padding:12px 20px 18px;border-top:1px solid var(--grey-line);background:#fff;">
+        <button class="btn btn-red" style="height:50px;padding:0;" onclick="confirmRoute()">Confirm Route</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9. CONFIRM BOOKING ============ -->
+  <section class="screen" id="s-confirm">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-pickup',true)">←</button><h2>Confirm Booking</h2></div>
+    <div class="scroll" style="flex:1;">
+      <div class="pad" style="padding-top:4px;">
+        <!-- ambulance — compact -->
+        <div class="card-w" style="padding:12px 14px;">
+          <div class="row between">
+            <div class="row" style="gap:11px;"><div class="hist-ic" style="width:40px;height:40px;">🚑</div>
+              <div><h3 style="font-size:15px;">BLS Ambulance</h3><p class="small muted" style="margin-top:2px;">Basic Life Support · ⭐ 4.8 · 4 min ETA</p></div></div>
+          </div>
+        </div>
+
+        <!-- route — compact -->
+        <div class="card" style="padding:12px 14px;margin-top:10px;">
+          <div class="row" style="margin-bottom:9px;"><span style="color:var(--green);font-size:14px;">●</span>
+            <div style="flex:1;"><span class="small muted" style="font-size:11px;">PICKUP</span> <b style="font-size:14px;">Sector 18, Noida</b></div></div>
+          <div class="row"><svg class="icon icon-sm" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--red);"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            <div style="flex:1;"><span class="small muted" style="font-size:11px;">DROP</span> <b id="confirmDrop" style="font-size:14px;">Fortis Hospital, Noida · 2.4 km</b></div></div>
+        </div>
+
+        <!-- fare — total only, expandable -->
+        <div class="card-w" style="padding:12px 14px;margin-top:10px;">
+          <div class="row between"><b>Total Fare</b><b style="font-size:19px;">₹899</b></div>
+          <div class="row between" onclick="toggleFare()" style="cursor:pointer;margin-top:9px;">
+            <span class="small" style="color:var(--red);font-weight:700;">View Fare Breakdown</span>
+            <svg id="fareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div id="fareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;">
+            <div class="lineitem" style="padding:7px 0;"><span>Base fare</span><span>₹499</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span>Distance (2.4 km × ₹120)</span><span>₹288</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span>Medical equipment</span><span>₹150</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span>Taxes & GST (5%)</span><span>₹47</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span style="color:var(--green);">Promo · FIRSTAID</span><span style="color:var(--green);">−₹85</span></div>
+          </div>
+        </div>
+
+        <!-- patient — compact -->
+        <div class="card" style="padding:10px 14px;margin-top:10px;">
+          <div class="row between"><div class="row" style="gap:8px;">👤<b style="font-size:14px;">Aarav Sharma</b></div><span class="badge badge-red">O+ · Asthma</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- sticky CTA -->
+    <div style="padding:11px 20px 16px;border-top:1px solid var(--grey-line);background:#fff;">
+      <button class="btn btn-red" style="height:50px;padding:0;" onclick="go('s-search')">Confirm Booking · ₹899</button>
+      <p class="center small muted" style="margin-top:8px;">Pay after the ride · Free cancellation in 2 min</p>
+    </div>
+  </section>
+
+  <!-- ============ 10. SEARCHING DRIVER ============ -->
+  <section class="screen" id="s-search">
+    <div class="scroll pt-status center">
+      <div class="pad" style="display:flex;flex-direction:column;min-height:100%;justify-content:center;padding:24px 22px 28px;">
+        <div class="radar"><div class="core">🚑</div></div>
+        <h1 style="margin-top:24px;">Finding your ambulance…</h1>
+        <p class="sub" style="max-width:285px;margin:8px auto 0;">We're connecting you to the nearest available unit.<br>Stay calm — help is on the way.</p>
+        <p class="center small muted" style="margin-top:12px;">Searching for <b id="searchTime" style="color:var(--navy);">00:00</b></p>
+
+        <div class="card" style="margin-top:18px;text-align:left;padding:6px 16px;">
+          <div class="srch-step pending" id="ss1"><span class="ss-ic"></span><span>Contacting nearby ambulances</span></div>
+          <div class="srch-step pending" id="ss2"><span class="ss-ic"></span><span>Checking availability</span></div>
+          <div class="srch-step pending" id="ss3"><span class="ss-ic"></span><span>Matching nearest driver</span></div>
+        </div>
+
+        <div class="card" style="margin-top:10px;text-align:left;padding:11px 16px;">
+          <div class="row between small"><span class="muted">Searching radius</span><b style="color:var(--navy);">2.5 km</b></div>
+          <div class="row between small" style="margin-top:7px;"><span class="muted">Units contacted</span><b style="color:var(--navy);">4</b></div>
+          <div class="row between small" style="margin-top:7px;"><span class="muted">Units available</span><b style="color:var(--green);">2</b></div>
+        </div>
+
+        <button class="btn btn-line-red" style="margin-top:18px;" onclick="stopSearch();go('s-home',true)">Cancel Search</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 11. LIVE TRACKING (opens directly after booking) ============ -->
+  <section class="screen" id="s-track">
+    <div class="map" id="trackMap">
+      <svg viewBox="0 0 390 700" preserveAspectRatio="xMidYMid slice">
+        <rect width="390" height="700" fill="#EAEDF1"/>
+        <!-- road network (desaturated) -->
+        <path d="M-20 430 H410 M-20 200 H410" stroke="#DDE2E8" stroke-width="24"/>
+        <path d="M70 -20 V720 M280 -20 V720" stroke="#DDE2E8" stroke-width="22"/>
+        <path d="M-20 590 H410" stroke="#DDE2E8" stroke-width="16"/>
+        <!-- lane dashes -->
+        <path d="M-20 430 H410" stroke="#fff" stroke-width="2.5" stroke-dasharray="9 13"/>
+        <path d="M280 -20 V720" stroke="#fff" stroke-width="2.5" stroke-dasharray="9 13"/>
+        <!-- parks / blocks -->
+        <circle cx="150" cy="300" r="46" fill="#DEE5DF"/><rect x="300" y="470" width="90" height="90" rx="6" fill="#E2E6EC"/>
+        <rect x="250" y="120" width="80" height="70" rx="8" fill="#E2E6EC"/>
+        <!-- route: follows roads with turns (white casing + red) -->
+        <path d="M70 560 V430 H280 V150" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M70 560 V430 H280 V150" stroke="var(--red)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <!-- road names -->
+      <div class="road" style="left:14px;top:422px;">Sector 18 Rd</div>
+      <div class="road" style="left:14px;top:192px;">Ring Rd</div>
+      <div class="road vert" style="left:276px;top:120px;">Hospital Marg</div>
+      <!-- markers -->
+      <div class="userdot" style="left:18%;top:80%;"></div>
+      <div class="userpulse" style="left:18%;top:80%;"></div>
+      <div class="map-pin" style="left:72%;top:21%;">🏥</div>
+      <div class="amb-dot" id="trackAmb" style="left:18%;top:80%;transition:all 1.5s ease;">🚑</div>
+    </div>
+
+    <div class="topbar pt-status" style="position:absolute;top:0;left:0;right:0;z-index:20;">
+      <button class="back-btn" onclick="go('s-home',true)">←</button><h2 style="color:var(--navy);background:#fff;padding:6px 14px;border-radius:30px;box-shadow:var(--shadow);flex:none;">Live Tracking</h2>
+    </div>
+    <div class="sos-min" style="right:18px;top:250px;" onclick="toast('SOS sent to control room')">SOS</div>
+
+    <div class="sheet">
+      <div class="grab"></div>
+
+      <!-- driver info — single compact row -->
+      <div class="row between" style="margin-bottom:14px;">
+        <div class="row" style="gap:11px;">
+          <div class="driver-photo" style="width:44px;height:44px;">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M4 22c0-4.6 3.6-7 8-7s8 2.4 8 7z"/></svg><span class="ver-dot"></span>
+          </div>
+          <div><b style="font-size:15px;">Rajesh Kumar</b>
+            <p class="small muted" style="margin-top:2px;">BLS Ambulance · ⭐ 4.9</p>
+            <span class="link-neutral" onclick="toast('UP16 AB 4521 · EMT Certified Paramedic · Verified ID')">View Details →</span></div>
+        </div>
+        <div style="text-align:right;flex:none;"><b style="color:var(--red);font-size:21px;line-height:1;" id="etaCount">03:54</b><p class="small muted" id="distRemain" style="margin-top:3px;">1.8 km away</p></div>
+      </div>
+
+      <!-- compact horizontal progress -->
+      <div class="hstep" id="trackTimeline" style="margin-bottom:16px;">
+        <div class="node done" id="tl1"><span class="dot"></span>Confirmed</div>
+        <div class="node now" id="tl2"><span class="dot"></span>En Route</div>
+        <div class="node" id="tl3"><span class="dot"></span>Pickup</div>
+        <div class="node" id="tl4"><span class="dot"></span>On Board</div>
+        <div class="node" id="tl5"><span class="dot"></span>Hospital</div>
+      </div>
+
+      <div class="row" style="gap:10px;">
+        <button class="btn btn-navy btn-sm" style="gap:7px;" onclick="toast('Calling driver…')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call Driver</button>
+        <button class="btn btn-outline btn-sm" style="gap:7px;" onclick="toast('Tracking link shared')"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V4M8 8l4-4 4 4"/></svg>Share Tracking</button>
+      </div>
+      <div class="center" style="margin-top:10px;"><span class="small muted" style="cursor:pointer;" onclick="go('s-complete')">Demo · skip to arrival</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 13. RIDE COMPLETE ============ -->
+  <section class="screen" id="s-complete">
+    <div class="scroll pt-status center">
+      <div class="pad" style="padding-top:40px;">
+        <div class="success-check">✓</div>
+        <h1 style="margin-top:20px;">Reached Safely</h1>
+        <p class="sub" style="max-width:285px;margin:8px auto 0;"><b style="color:var(--navy);">Patient reached Fortis Hospital safely.</b></p>
+        <p class="small" style="margin-top:8px;color:var(--green);font-weight:700;">Ride Completed Successfully</p>
+        <p class="small muted" style="margin-top:2px;">Thank you for using AmbuCare.</p>
+
+        <div class="card-w" style="margin-top:20px;text-align:left;">
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Driver</span><b style="color:var(--navy);">Rajesh Kumar · BLS</b></div>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Trip Distance</span><b style="color:var(--navy);">2.4 km</b></div>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Trip Duration</span><b style="color:var(--navy);">11 min</b></div>
+          <div style="height:1px;background:var(--grey-line);margin:6px 0;"></div>
+          <div class="row between"><b>Total Fare</b><b style="font-size:18px;">₹899</b></div>
+          <div class="row between" onclick="toggleFare('cmpFareDetail','cmpFareChev')" style="cursor:pointer;margin-top:9px;">
+            <span class="small" style="color:var(--red);font-weight:700;">View Fare Breakdown</span>
+            <svg id="cmpFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div id="cmpFareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;">
+            <div class="lineitem" style="padding:7px 0;"><span>Base fare</span><span>₹499</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span>Distance (2.4 km × ₹120)</span><span>₹288</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span>Medical equipment</span><span>₹150</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span>Taxes & GST (5%)</span><span>₹47</span></div>
+            <div class="lineitem" style="padding:7px 0;"><span style="color:var(--green);">Promo · FIRSTAID</span><span style="color:var(--green);">−₹85</span></div>
+          </div>
+        </div>
+
+        <p class="muted small" style="margin-top:16px;">Rate your experience (Optional)</p>
+        <div class="rate-stars" style="font-size:28px;letter-spacing:6px;margin-top:6px;">⭐⭐⭐⭐⭐</div>
+
+        <button class="btn btn-red" style="margin-top:18px;" onclick="go('s-payment')">Proceed to Payment · ₹899</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 14. PAYMENT ============ -->
+  <section class="screen" id="s-payment">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-complete',true)">←</button><h2>Payment</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="card center" style="background:var(--navy);color:#fff;">
+          <p class="small" style="color:rgba(255,255,255,.7);">Amount payable</p>
+          <h1 style="color:#fff;font-size:38px;margin-top:4px;">₹899</h1>
+          <p class="small" style="color:rgba(255,255,255,.7);">Fortis Hospital trip · BLS</p>
+        </div>
+
+        <p class="small muted" style="font-weight:700;margin:18px 0 10px;">Select payment method</p>
+        <div class="pay-opt on" onclick="pickPay(this)"><div class="ic">📲</div><div><b>UPI</b><p class="small muted">GPay, PhonePe, Paytm</p></div><div class="radio"></div></div>
+        <div class="pay-opt" onclick="pickPay(this)"><div class="ic">💳</div><div><b>Credit / Debit Card</b><p class="small muted">Visa, Mastercard, RuPay</p></div><div class="radio"></div></div>
+        <div class="pay-opt" onclick="pickPay(this)"><div class="ic">💵</div><div><b>Cash</b><p class="small muted">Pay driver directly</p></div><div class="radio"></div></div>
+        <div class="pay-opt" onclick="pickPay(this)"><div class="ic">🏦</div><div><b>Net Banking</b><p class="small muted">All major banks</p></div><div class="radio"></div></div>
+
+        <button class="btn btn-red" style="margin-top:8px;" onclick="payNow()">Pay ₹899 securely 🔒</button>
+        <p class="center small muted" style="margin-top:10px;">256-bit encrypted · Insurance claim supported</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 15. PAYMENT SUCCESS ============ -->
+  <section class="screen" id="s-pay-success">
+    <div class="scroll pt-status center">
+      <div class="pad" style="padding-top:38px;">
+        <div class="success-check">✓</div>
+        <h1 style="margin-top:20px;">Payment Successful</h1>
+        <p class="sub" style="max-width:280px;margin:8px auto 0;"><b style="color:var(--navy);">₹899</b> paid successfully.</p>
+
+        <div class="card-w" style="margin-top:20px;text-align:left;">
+          <p class="small muted" style="font-weight:700;margin-bottom:8px;letter-spacing:.3px;">RIDE SUMMARY</p>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Route</span><b style="color:var(--navy);">Sector 18 → Fortis</b></div>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Driver</span><b style="color:var(--navy);">Rajesh Kumar · BLS</b></div>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Distance / Time</span><b style="color:var(--navy);">2.4 km · 11 min</b></div>
+          <div style="height:1px;background:var(--grey-line);margin:6px 0;"></div>
+          <div class="row between" style="padding:6px 0;"><b>Amount Paid</b><b style="font-size:18px;">₹899</b></div>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Transaction ID</span><b style="color:var(--navy);font-size:13px;">TXN20260623488271</b></div>
+          <div class="lineitem" style="padding:8px 0;"><span class="muted">Paid via</span><b style="color:var(--navy);" id="paySuccessMethod">UPI</b></div>
+        </div>
+
+        <button class="btn btn-red" style="margin-top:18px;gap:8px;" onclick="go('s-invoice')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Download Invoice</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="go('s-home')">Back to Home</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 15b. INVOICE ============ -->
+  <section class="screen" id="s-invoice">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Invoice</h2><span class="badge badge-green">PAID</span></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="card-w">
+          <div class="row between" style="margin-bottom:12px;"><div><b style="font-size:17px;">AmbuCare</b><p class="small muted">Invoice #AC-2026-48271 · 23 Jun 2026</p></div>
+            <svg class="icon" viewBox="0 0 24 24" style="color:var(--red);width:26px;height:26px;"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/></svg></div>
+          <div style="height:1px;background:var(--grey-line);margin-bottom:12px;"></div>
+          <div class="lineitem" style="padding:7px 0;"><span class="muted">Driver</span><b style="color:var(--navy);">Rajesh Kumar</b></div>
+          <div class="lineitem" style="padding:7px 0;"><span class="muted">Ambulance Type</span><b style="color:var(--navy);">BLS · UP16 AB 4521</b></div>
+          <div class="lineitem" style="padding:7px 0;"><span class="muted">Pickup</span><b style="color:var(--navy);">Sector 18, Noida</b></div>
+          <div class="lineitem" style="padding:7px 0;"><span class="muted">Destination</span><b style="color:var(--navy);">Fortis Hospital, Noida</b></div>
+          <div class="lineitem" style="padding:7px 0;"><span class="muted">Distance</span><b style="color:var(--navy);">2.4 km · 11 min</b></div>
+          <div class="lineitem" style="padding:7px 0;"><span class="muted">Payment Method</span><b style="color:var(--navy);" id="invMethod">UPI</b></div>
+          <div style="height:1px;background:var(--grey-line);margin:6px 0;"></div>
+          <p class="small muted" style="font-weight:700;margin:4px 0 2px;letter-spacing:.3px;">FARE BREAKDOWN</p>
+          <div class="lineitem" style="padding:6px 0;"><span>Base fare</span><span>₹499</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span>Distance charge</span><span>₹288</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span>Equipment</span><span>₹150</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span>GST (5%)</span><span>₹47</span></div>
+          <div class="lineitem" style="padding:6px 0;"><span style="color:var(--green);">Promo FIRSTAID</span><span style="color:var(--green);">−₹85</span></div>
+          <div class="lineitem total"><span>Total Paid</span><span>₹899</span></div>
+        </div>
+
+        <button class="btn btn-navy" style="margin-top:16px;gap:8px;" onclick="toast('Invoice downloaded (PDF)')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Download PDF</button>
+        <button class="btn btn-outline" style="margin-top:10px;" onclick="go('s-home')">Back to Home</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 16. RIDE HISTORY ============ -->
+  <section class="screen" id="s-history">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-home',true)">←</button><h2>My Rides</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="row" style="gap:8px;margin-bottom:16px;"><span class="chip on">All</span><span class="chip">Completed</span><span class="chip">Cancelled</span></div>
+
+        <div class="hist-card" onclick="go('s-invoice')">
+          <div class="hist-ic">🚑</div>
+          <div style="flex:1;"><div class="row between"><h3>Fortis Hospital</h3><span class="badge badge-green">Completed</span></div>
+            <p class="small muted" style="margin-top:3px;">23 Jun 2026 · BLS · Rajesh Kumar ⭐4.9</p>
+            <b style="margin-top:4px;display:inline-block;">₹899</b> <span class="small muted">· 2.4 km</span></div>
+        </div>
+
+        <div class="hist-card" onclick="go('s-invoice')">
+          <div class="hist-ic">🏥</div>
+          <div style="flex:1;"><div class="row between"><h3>Max Super Speciality</h3><span class="badge badge-green">Completed</span></div>
+            <p class="small muted" style="margin-top:3px;">11 Jun 2026 · ALS · Sunita Devi ⭐4.8</p>
+            <b style="margin-top:4px;display:inline-block;">₹1,499</b> <span class="small muted">· 5.1 km</span></div>
+        </div>
+
+        <div class="hist-card" onclick="go('s-invoice')">
+          <div class="hist-ic">👶</div>
+          <div style="flex:1;"><div class="row between"><h3>Apollo Cradle</h3><span class="badge badge-amber">Cancelled</span></div>
+            <p class="small muted" style="margin-top:3px;">28 May 2026 · Neonatal · Refunded</p>
+            <b style="margin-top:4px;display:inline-block;">₹0</b> <span class="small muted">· Cancelled by user</span></div>
+        </div>
+
+        <div class="hist-card" onclick="go('s-invoice')">
+          <div class="hist-ic">🚑</div>
+          <div style="flex:1;"><div class="row between"><h3>AIIMS Trauma Centre</h3><span class="badge badge-green">Completed</span></div>
+            <p class="small muted" style="margin-top:3px;">02 May 2026 · BLS · Mohan Lal ⭐4.7</p>
+            <b style="margin-top:4px;display:inline-block;">₹1,050</b> <span class="small muted">· 3.3 km</span></div>
+        </div>
+
+        <!-- empty state (shown when no rides) -->
+        <div class="empty" id="ridesEmpty" style="display:none;">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <b>No ride history yet</b><p class="small">Your past ambulance trips will appear here</p>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('s-home',true)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Home</div>
+      <div class="navitem on">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Rides</div>
+      <div class="navitem" onclick="go('s-profile-view')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+  </section>
+
+  <!-- ============ 17. PROFILE (account) ============ -->
+  <section class="screen" id="s-profile-view">
+    <div class="topbar pt-status"><h2 style="flex:1;">Profile</h2>
+      <button class="icon-btn" style="width:38px;height:38px;" onclick="go('s-notifications')">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+    </div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <!-- identity -->
+        <div class="card-w row" style="gap:14px;">
+          <div class="avatar" style="width:62px;height:62px;font-size:22px;">AS</div>
+          <div style="flex:1;">
+            <h3 style="font-size:17px;">Aarav Sharma</h3>
+            <p class="small muted" style="margin-top:2px;">+91 98765 43210</p>
+            <span class="badge badge-red" style="margin-top:7px;">O+ · Asthma</span>
+          </div>
+        </div>
+
+        <!-- medical info -->
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">MEDICAL INFORMATION</p>
+        <div class="card-w" style="padding:4px 16px;">
+          <div class="lineitem"><span class="muted">Blood type</span><b style="color:var(--navy);">O+</b></div>
+          <div class="lineitem"><span class="muted">Known allergies</span><b style="color:var(--navy);">Penicillin</b></div>
+          <div class="lineitem"><span class="muted">Medical conditions</span><b style="color:var(--navy);">Asthma, Hypertension</b></div>
+          <div class="lineitem"><span class="muted">Emergency contact</span><b style="color:var(--navy);">+91 99887 76655</b></div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px;height:46px;" onclick="go('s-profile')">Edit Profile</button>
+
+        <!-- menu -->
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">ACCOUNT</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="go('s-history')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Ride History</span><i></i></div>
+          <div class="menu-item" onclick="toast('Saved Hospitals')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><path d="M12 8v6M9 11h6"/></svg><span>Saved Hospitals</span><i></i></div>
+          <div class="menu-item" onclick="go('s-payment')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg><span>Payment Methods</span><i></i></div>
+          <div class="menu-item" onclick="go('s-notifications')"><svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Notifications</span><i></i></div>
+        </div>
+
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">SUPPORT</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="toast('Help & Support')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h0"/></svg><span>Help &amp; Support</span><i></i></div>
+          <div class="menu-item" onclick="toast('Privacy Policy')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V6z"/></svg><span>Privacy Policy</span><i></i></div>
+          <div class="menu-item danger" onclick="go('s-login',true)"><svg class="icon" viewBox="0 0 24 24"><path d="M15 12H4M9 7l-5 5 5 5"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg><span>Logout</span></div>
+        </div>
+        <p class="center small muted" style="margin:18px 0 6px;">AmbuCare · v1.0.0</p>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('s-home',true)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Home</div>
+      <div class="navitem" onclick="go('s-history')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Rides</div>
+      <div class="navitem on">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+  </section>
+
+  <!-- ============ 18. NOTIFICATIONS ============ -->
+  <section class="screen" id="s-notifications">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Notifications</h2>
+      <span class="small" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="toast('All marked read')">Mark read</span></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <p class="small muted" style="font-weight:700;margin-bottom:8px;">TODAY</p>
+
+        <div class="notif" onclick="go('s-track')"><div class="nic nic-red"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M2 9h11v8H2z"/><path d="M13 12h4l3 3v2h-7z"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>
+          <div style="flex:1;"><b>Ambulance assigned</b><p class="small muted">Rajesh Kumar (BLS · UP16 AB 4521) is on the way.</p><span class="ntime">Driver assigned • 2 min ago</span></div></div>
+
+        <div class="notif" onclick="go('s-track')"><div class="nic nic-green"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <div style="flex:1;"><b>Driver arrived</b><p class="small muted">Ambulance reached pickup location.</p><span class="ntime">Reached pickup • 5 min ago</span></div></div>
+
+        <div class="notif" onclick="go('s-track')"><div class="nic nic-amber"><svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div style="flex:1;"><b>Ride update</b><p class="small muted">En route to Fortis Hospital · ETA 6 min.</p><span class="ntime">Ride update • 8 min ago</span></div></div>
+
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">EARLIER</p>
+
+        <div class="notif" onclick="go('s-invoice')"><div class="nic nic-navy"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+          <div style="flex:1;"><b>Payment receipt</b><p class="small muted">Invoice #AC-2026-48271 · ₹899 paid via UPI.</p><span class="ntime">Invoice generated • Yesterday</span></div></div>
+
+        <div class="notif" onclick="toast('Emergency alert')"><div class="nic nic-red"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h0"/></svg></div>
+          <div style="flex:1;"><b>Emergency alert</b><p class="small muted">Heatwave advisory in your area. Stay hydrated.</p><span class="ntime">Alert • 2 days ago</span></div></div>
+
+        <!-- empty state (shown when no notifications) -->
+        <div class="empty" id="notifEmpty" style="display:none;">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <b>You're all caught up</b><p class="small">No new notifications</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 19. NEARBY HOSPITALS ============ -->
+  <section class="screen" id="s-hospitals">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Nearby Hospitals</h2>
+      <span class="badge badge-green">● Live</span></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="row" style="gap:7px;color:var(--grey-text);margin-bottom:14px;">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          <p class="small">Near <b style="color:var(--navy);">Sector 18, Noida</b> · sorted by distance</p>
+        </div>
+
+        <div class="chiprow" style="margin-bottom:16px;">
+          <span class="chip on" onclick="hospFilter(this)">All</span>
+          <span class="chip" onclick="hospFilter(this)">Emergency 24/7</span>
+          <span class="chip" onclick="hospFilter(this)">Trauma</span>
+          <span class="chip" onclick="hospFilter(this)">Open Now</span>
+          <span class="chip" onclick="hospFilter(this)">Cardiac</span>
+          <span class="chip" onclick="hospFilter(this)">Nearest</span>
+          <span class="chip" onclick="hospFilter(this)">Highest Rated</span>
+        </div>
+
+        <div id="hospList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 20. HOSPITAL DETAILS ============ -->
+  <section class="screen" id="s-hospital-detail">
+    <div class="topbar pt-status"><button class="back-btn" onclick="go('s-hospitals',true)">←</button><h2 style="flex:1;">Hospital Details</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="card-w row" style="gap:14px;">
+          <div class="hist-ic" style="width:52px;height:52px;"><svg class="icon" viewBox="0 0 24 24" style="width:26px;height:26px;"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg></div>
+          <div style="flex:1;">
+            <h3 id="hdName" style="font-size:17px;">Fortis Hospital</h3>
+            <p class="small muted" id="hdType" style="margin-top:2px;">Multi-speciality</p>
+            <span class="badge badge-green" id="hdEmerg" style="margin-top:7px;">Emergency 24/7</span>
+          </div>
+        </div>
+
+        <div class="row" style="gap:10px;margin-top:12px;">
+          <div class="card center" style="flex:1;"><p class="small muted">Distance</p><b id="hdDist">2.4 km</b></div>
+          <div class="card center" style="flex:1;"><p class="small muted">ETA</p><b id="hdEta" style="color:var(--red);">6 min</b></div>
+          <div class="card center" style="flex:1;"><p class="small muted">Rating</p><b id="hdRating">4.6</b></div>
+        </div>
+
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">ADDRESS</p>
+        <div class="card-w row" style="gap:12px;">
+          <svg class="icon" viewBox="0 0 24 24" style="color:var(--navy-soft);"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          <p class="small" id="hdAddr" style="color:var(--navy-soft);">B-22, Sector 62, Noida, Uttar Pradesh 201301</p>
+        </div>
+
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">EMERGENCY AVAILABILITY</p>
+        <div class="card-w">
+          <div class="lineitem"><span class="muted">Casualty / ER</span><b id="hdEr" style="color:#1d8f5a;">Open 24/7</b></div>
+          <div class="lineitem"><span class="muted">ICU beds available</span><b style="color:var(--navy);">8</b></div>
+          <div class="lineitem"><span class="muted">Ambulance bay</span><b style="color:var(--navy);">Active</b></div>
+        </div>
+
+        <div class="row" style="gap:10px;margin-top:18px;">
+          <button class="btn btn-outline" style="gap:7px;" id="hdCall" onclick="toast('Calling hospital…')"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call</button>
+          <button class="btn btn-outline" style="gap:7px;" onclick="toast('Opening directions…')"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>Directions</button>
+        </div>
+        <button class="btn btn-red" style="margin-top:10px;gap:8px;" onclick="bookHere()"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/></svg>Book Ambulance Here</button>
+        <p class="center small muted" style="margin-top:10px;">Pickup auto-set to your current location</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+</div>
+
+<!-- hidden dev menu: press D to toggle -->
+<div class="devmenu" id="devmenu">
+  <span>🚑 <b>Dev</b></span>
+  <button onclick="go('s-splash')">↺ Restart</button>
+  <button onclick="go('s-home')">🏠 Home</button>
+  <button onclick="document.getElementById('devmenu').classList.remove('show')">✕</button>
+</div>
+
+<script>
+  // ===== responsive scale: fit phone in viewport, never crop, cap ~0.85 =====
+  const PH_W=420, PH_H=884;            // frame incl borders
+  function fitPhone(){
+    const reserveH=20, reserveW=20;    // small breathing margin only
+    const s=Math.min(
+      (window.innerHeight-reserveH)/PH_H,
+      (window.innerWidth -reserveW)/PH_W,
+      0.85                             // hard cap → 15% smaller than full size
+    );
+    document.querySelector('.phone').style.setProperty('--s', s.toFixed(3));
+  }
+  window.addEventListener('resize', fitPhone);
+  fitPhone();
+
+  // hidden dev menu — press D to toggle
+  window.addEventListener('keydown', e=>{
+    if(e.key==='d'||e.key==='D') document.getElementById('devmenu').classList.toggle('show');
+  });
+
+  // ===== login routing =====
+  let loginMode = 'otp';   // 'otp' = existing user via OTP, 'register' = new account
+  function loginPassword(){
+    const phone=(document.getElementById('loginPhone').value||'').trim();
+    const pass =(document.getElementById('loginPass').value||'').trim();
+    if(phone.replace(/\D/g,'').length<10){ toast('Enter a valid 10-digit phone number'); return; }
+    if(pass.length<4){ toast('Enter your password'); return; }
+    go('s-home');                     // password login → straight to Home
+  }
+  function loginOtp(){ loginMode='otp'; go('s-otp'); }
+  function createAccount(){ go('s-register'); }                    // open Registration screen
+
+  // forgot-password flow
+  function sendResetOtp(){
+    const p=(document.getElementById('forgotPhone').value||'').replace(/\D/g,'');
+    if(p.length<10){ toast('Enter a valid 10-digit phone number'); return; }
+    loginMode='reset'; go('s-otp');
+  }
+  function resetPassword(){
+    const a=document.getElementById('newPass').value, b=document.getElementById('confirmPass').value;
+    if((a||'').length<4){ toast('Password too short'); return; }
+    if(a!==b){ toast('Passwords do not match'); return; }
+    go('s-login',true); toast('✓ Password reset successfully. Please log in.');
+  }
+
+  // registration flow
+  function submitRegister(){
+    const name=(document.getElementById('regName').value||'').trim();
+    const phone=(document.getElementById('regPhone').value||'').replace(/\D/g,'');
+    if(!name){ toast('Enter your full name'); return; }
+    if(phone.length<10){ toast('Enter a valid 10-digit phone number'); return; }
+    loginMode='register'; go('s-otp');
+  }
+
+  // route after OTP verify by flow context
+  function otpVerified(){
+    if(loginMode==='register') go('s-profile');
+    else if(loginMode==='reset') go('s-reset');
+    else go('s-home');
+  }
+
+  let current = 's-splash';
+  let prevScreen = 's-home';
+  function back(){ go(prevScreen, true); }
+  function go(id, back){
+    if(!back && id!==current) prevScreen = current;
+    const cur = document.getElementById(current);
+    const next = document.getElementById(id);
+    if(!next || id===current) { if(id===current) return; }
+    cur.classList.remove('active');
+    if(back) cur.classList.add('back'); else cur.classList.remove('back');
+    next.classList.remove('back');
+    void next.offsetWidth;
+    next.classList.add('active');
+    next.querySelector('.scroll')?.scrollTo(0,0);
+    current = id;
+    // status bar color
+    const sb = document.getElementById('statusbar');
+    sb.classList.toggle('light', id==='s-splash');
+    // screen-specific hooks
+    if(id==='s-otp'){ resetOtp(); }
+    if(id==='s-hospitals'){ renderHospitals(); }
+    if(id==='s-pickup'){ pendingDest=booking.dest; applyDest(); }
+    if(id==='s-confirm'){ applyDest(); }
+    if(id==='s-search'){ startSearch(); }
+    if(id==='s-track'){ startTracking(); }
+    if(id==='s-invoice'){ /* ready */ }
+  }
+
+  // ===== OTP: standard mobile input behavior =====
+  const otpInputs=[...document.querySelectorAll('#otpRow input.otp-box')];
+  otpInputs.forEach((box,i)=>{
+    box.addEventListener('input',e=>{
+      box.value=box.value.replace(/\D/g,'').slice(0,1);   // digits only
+      if(box.value && i<otpInputs.length-1) otpInputs[i+1].focus();  // auto-advance
+      if(otpInputs.every(b=>b.value)) setTimeout(otpVerified,200);   // auto-submit
+    });
+    box.addEventListener('keydown',e=>{
+      if(e.key==='Backspace' && !box.value && i>0){ otpInputs[i-1].focus(); otpInputs[i-1].value=''; }
+    });
+  });
+  function resetOtp(){ otpInputs.forEach(b=>b.value=''); setTimeout(()=>otpInputs[0]?.focus(),120); }
+  function changeNumber(){ go(loginMode==='register' ? 's-register' : 'reset'===loginMode ? 's-forgot' : 's-login', true); }
+
+  // blood-group single-select
+  document.querySelectorAll('.bloodgrid .chip').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.bloodgrid .chip').forEach(x=>x.classList.remove('on')); c.classList.add('on');
+  }));
+
+  function selectAmb(el,next){ go(next); }
+
+  // ===== Smart Booking sheet (2-tap booking) =====
+  const AMB={
+    bls:{icon:'🚑',name:'BLS Ambulance',sub:'Basic Life Support · ⭐ 4.8',eta:'4 min',total:899,rec:true},
+    als:{icon:'🏥',name:'ALS Ambulance',sub:'Advanced Life Support · ⭐ 4.9',eta:'6 min',total:1499},
+    neo:{icon:'👶',name:'Neonatal Ambulance',sub:'Infant incubator · ⭐ 5.0',eta:'9 min',total:2199},
+    mort:{icon:'🕊',name:'Mortuary Van',sub:'Respectful transport · ⭐ 4.7',eta:'12 min',total:1299}
+  };
+  let currentAmb='bls';
+  function inr(n){ return '₹'+n.toLocaleString('en-IN'); }
+
+  // ===== booking state (persisted across screens) =====
+  const DESTS=[
+    {name:'Fortis Hospital',city:'Noida',km:2.4,dist:'2.4 km',eta:'6 min'},
+    {name:'Max Super Speciality',city:'Noida',km:3.1,dist:'3.1 km',eta:'9 min'},
+    {name:'Apollo Clinic',city:'Noida',km:4.0,dist:'4.0 km',eta:'11 min'},
+    {name:'AIIMS Trauma Centre',city:'New Delhi',km:5.6,dist:'5.6 km',eta:'15 min'}
+  ];
+  const booking={ pickup:'Sector 18, Noida', dest:DESTS[0] };
+  let pendingDest=null;
+  // total = fixed base (per ambulance) + distance charge + equipment+gst−promo (112)
+  function fareTotal(){ return (AMB[currentAmb].total-400) + Math.round(booking.dest.km*120) + 112; }
+  function setHTML(id,html){ const e=document.getElementById(id); if(e) e.innerHTML=html; }
+  function setTxt(id,txt){ const e=document.getElementById(id); if(e) e.textContent=txt; }
+
+  function refreshSmartSheet(){
+    const a=AMB[currentAmb], dst=booking.dest, total=fareTotal();
+    setHTML('recoIcon', ICONS[a.icon]?'<span class="i"><svg viewBox="0 0 24 24">'+ICONS[a.icon]+'</svg></span>':a.icon);
+    setTxt('recoName', a.name); setHTML('recoSub', a.sub.replace('⭐',STAR)); setTxt('recoEta', dst.eta);
+    setTxt('recoTag', a.rec?'RECOMMENDED':'SELECTED');
+    setTxt('smartDestName', dst.name+', '+dst.city+' · '+dst.dist);
+    setTxt('smartTotal', inr(total)); setTxt('fareBase', inr(a.total-400));
+    setTxt('smartDistLabel', 'Distance ('+dst.dist+' × ₹120)'); setTxt('smartDistVal', inr(Math.round(dst.km*120)));
+    const cta=document.getElementById('smartCta'); if(cta) cta.textContent='Confirm Booking · '+inr(total);
+  }
+  function setReco(key){ currentAmb=key; refreshSmartSheet(); }
+  function showSmartSheet(){
+    const d=document.getElementById('smartFareDetail'); if(d) d.style.display='none';
+    const c=document.getElementById('smartFareChev'); if(c) c.style.transform='';
+    document.getElementById('smartScrim').classList.add('show');
+    document.getElementById('smartSheet').classList.add('show');
+  }
+  function openSmartSheet(){ selectedHospital=null; booking.dest=DESTS[0]; setReco('bls'); showSmartSheet(); } // fresh = recommended
+  function closeSmartSheet(){
+    document.getElementById('smartScrim').classList.remove('show');
+    document.getElementById('smartSheet').classList.remove('show');
+  }
+  // Choose Ambulance → "Select" returns to the sheet with updated type/ETA/fare (no booking yet)
+  function selectAmbType(key){ currentAmb=key; go('s-home',true); refreshSmartSheet(); showSmartSheet(); }
+  function confirmSmart(){ closeSmartSheet(); go('s-search'); }   // Tap 2 → booked
+
+  // ===== Set Route: destination selection + persistence =====
+  function selectDest(i){
+    pendingDest=DESTS[i];
+    const di=document.getElementById('destInput'); if(di) di.value=DESTS[i].name+', '+DESTS[i].city;
+    document.querySelectorAll('#s-pickup .route-hosp').forEach((r,k)=>r.classList.toggle('sel',k===i));
+  }
+  function confirmRoute(){                       // Confirm Route → save + return to sheet, recalc all
+    if(pendingDest) booking.dest=pendingDest; pendingDest=null;
+    go('s-home',true); refreshSmartSheet(); showSmartSheet();
+  }
+  function backFromRoute(){                       // Back → return to sheet, keep previous dest
+    pendingDest=null; go('s-home',true); refreshSmartSheet(); showSmartSheet();
+  }
+  function applyDest(){                            // sync Set Route screen to current dest
+    const di=document.getElementById('destInput'); if(di) di.value=booking.dest.name+', '+booking.dest.city;
+    document.querySelectorAll('#s-pickup .route-hosp').forEach((r,i)=>r.classList.toggle('sel', DESTS[i]&&DESTS[i].name===booking.dest.name));
+    const cd=document.getElementById('confirmDrop'); if(cd) cd.textContent=booking.dest.name+', '+booking.dest.city+' · '+booking.dest.dist;
+  }
+
+  // ===== Nearby Hospitals =====
+  const HOSPITALS=[
+    {name:'Fortis Hospital',type:'Multi-speciality',rating:'4.6',dist:'2.4 km',eta:'6 min',
+      addr:'B-22, Sector 62, Noida, Uttar Pradesh 201301',open:'Emergency 24/7',er:'Open 24/7',emerg:true},
+    {name:'Max Super Speciality',type:'Cardiac & trauma',rating:'4.5',dist:'3.1 km',eta:'9 min',
+      addr:'Plot 1, Sector 19, Noida, Uttar Pradesh 201301',open:'Emergency 24/7',er:'Open 24/7',emerg:true},
+    {name:'Apollo Clinic',type:'Trauma centre',rating:'4.7',dist:'4.0 km',eta:'11 min',
+      addr:'C-31, Sector 27, Noida, Uttar Pradesh 201301',open:'Closes 11 PM',er:'Open till 11 PM',emerg:false},
+    {name:'AIIMS Trauma Centre',type:'Govt · Level-1 trauma',rating:'4.4',dist:'5.6 km',eta:'15 min',
+      addr:'Ansari Nagar, New Delhi 110029',open:'Emergency 24/7',er:'Open 24/7',emerg:true}
+  ];
+  const SVG_HOSP='<svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>';
+  const SVG_PHONE='<svg class="icon" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>';
+  const SVG_NAV='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M16 8l-2.5 5.5L8 16l2.5-5.5z"/></svg>';
+  const SVG_AMB='<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.6"/><circle cx="16.5" cy="15.5" r="1.6"/></svg>';
+  function renderHospitals(){
+    const el=document.getElementById('hospList'); if(!el) return;
+    el.innerHTML=HOSPITALS.map((h,i)=>`
+      <div class="hosp-card" onclick="openHospital(${i})">
+        <div class="row between">
+          <div class="row" style="gap:11px;flex:1;min-width:0;">
+            <div class="hist-ic">${SVG_HOSP}</div>
+            <div style="min-width:0;"><h3>${h.name}</h3>
+              <p class="small muted" style="margin-top:2px;">${h.type} · ${STAR}${h.rating} · <span style="color:${h.emerg?'#1d8f5a':'#c97c12'};font-weight:700;">${h.emerg?'24/7':h.open}</span></p></div>
+          </div>
+          <div class="center" style="flex:none;"><b>${h.dist}</b><br><span class="small muted">${h.eta}</span></div>
+        </div>
+        <div class="row" style="gap:8px;margin-top:11px;" onclick="event.stopPropagation()">
+          <button class="hosp-act" onclick="toast('Calling ${h.name}…')">${SVG_PHONE}</button>
+          <button class="hosp-act" onclick="toast('Opening directions…')">${SVG_NAV}</button>
+          <button class="hosp-book" onclick="bookHere(${i})">${SVG_AMB}Book Ambulance Here</button>
+        </div>
+      </div>`).join('');
+  }
+  function hospFilter(el){ el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); }
+  let selectedHospital=null;
+  function openHospital(i){
+    const h=HOSPITALS[i]; selectedHospital=h;
+    document.getElementById('hdName').textContent=h.name;
+    document.getElementById('hdType').textContent=h.type;
+    document.getElementById('hdDist').textContent=h.dist;
+    document.getElementById('hdEta').textContent=h.eta;
+    document.getElementById('hdRating').innerHTML=STAR+' '+h.rating;
+    document.getElementById('hdAddr').textContent=h.addr;
+    document.getElementById('hdEr').textContent=h.er;
+    const eb=document.getElementById('hdEmerg');
+    eb.textContent=h.open; eb.className='badge '+(h.emerg?'badge-green':'badge-amber');
+    document.getElementById('hdCall').setAttribute('onclick',`toast('Calling ${h.name}…')`);
+    go('s-hospital-detail');
+  }
+  function bookHere(i){
+    if(typeof i!=='number') i=0;
+    selectedHospital=HOSPITALS[i]; booking.dest=DESTS[i];   // carry hospital → destination
+    toast('Booking to '+booking.dest.name);
+    go('s-amb-type');
+  }
+  function applyHospitalDest(){
+    const h=selectedHospital||{name:'Fortis Hospital',dist:'2.4 km'};
+    const di=document.getElementById('destInput'); if(di) di.value=h.name+', Noida';
+    const cd=document.getElementById('confirmDrop'); if(cd) cd.textContent=h.name+', Noida · '+h.dist;
+  }
+
+  // ===== Home map: ambulance tap preview =====
+  function showAmb(type,eta,rating,dist,el){
+    document.getElementById('apType').textContent=type+' Ambulance';
+    document.getElementById('apEta').textContent=eta;
+    document.getElementById('apRating').innerHTML=STAR+' '+rating;
+    document.getElementById('apDist').textContent=dist;
+    document.getElementById('ambPreview').classList.add('show');
+    const cta=document.getElementById('homeCTA');   // selected card becomes the action area
+    if(cta) cta.style.display='none';
+    document.querySelectorAll('#homeMap .ambmk').forEach(m=>m.classList.remove('sel'));
+    el?.classList.add('sel');
+  }
+  function hideAmbPreview(){
+    document.getElementById('ambPreview')?.classList.remove('show');
+    const cta=document.getElementById('homeCTA');
+    if(cta) cta.style.display='';
+    document.querySelectorAll('#homeMap .ambmk').forEach(m=>m.classList.remove('sel'));
+  }
+  // tap empty map area to dismiss preview
+  document.getElementById('homeMap')?.addEventListener('click',e=>{
+    if(!e.target.closest('.ambmk')) hideAmbPreview();
+  });
+  function recenter(){ hideAmbPreview(); toast('Centering on your location'); }
+
+  function toggleFare(detailId,chevId){
+    const d=document.getElementById(detailId||'fareDetail'), c=document.getElementById(chevId||'fareChev');
+    const open=d.style.display==='none'||!d.style.display;
+    d.style.display=open?'block':'none';
+    if(c) c.style.transform=open?'rotate(180deg)':'';
+  }
+  let payMethod='UPI';
+  function pickPay(el){ document.querySelectorAll('#s-payment .pay-opt').forEach(o=>o.classList.remove('on')); el.classList.add('on');
+    payMethod=el.querySelector('b')?.textContent||'UPI'; }
+  function payNow(){ toast('Processing payment…');
+    const m=document.getElementById('paySuccessMethod'); if(m) m.textContent=payMethod;
+    const im=document.getElementById('invMethod'); if(im) im.textContent=payMethod;
+    setTimeout(()=>go('s-pay-success'),1100); }
+
+  // ===== Searching driver: live progress =====
+  const SS_CHECK='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M5 12l4 4 9-9"/></svg>';
+  function ssState(id,cls){ const e=document.getElementById(id); if(!e) return;
+    e.className='srch-step '+cls; e.querySelector('.ss-ic').innerHTML=(cls==='done')?SS_CHECK:''; }
+  function startSearch(){
+    const ids=['ss1','ss2','ss3']; ids.forEach(i=>ssState(i,'pending'));
+    let t=0; const tEl=document.getElementById('searchTime'); if(tEl) tEl.textContent='00:00';
+    clearInterval(window._stime); window._stime=setInterval(()=>{ t++;
+      if(tEl) tEl.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); },1000);
+    ssState('ss1','active');
+    [window._ss1,window._ss2,window._ss3].forEach(clearTimeout);
+    window._ss1=setTimeout(()=>{ ssState('ss1','done'); ssState('ss2','active'); },1300);
+    window._ss2=setTimeout(()=>{ ssState('ss2','done'); ssState('ss3','active'); },2600);
+    window._ss3=setTimeout(()=>{ ssState('ss3','done'); clearInterval(window._stime); go('s-track'); },3900);
+  }
+  function stopSearch(){ clearInterval(window._stime);
+    [window._ss1,window._ss2,window._ss3].forEach(clearTimeout); }
+
+  // Ambulance Assigned — live ETA countdown
+  function startAccepted(){
+    let t=240; const e=document.getElementById('acceptEta'); if(!e) return;
+    clearInterval(window._aeta); window._aeta=setInterval(()=>{ if(t<=0){clearInterval(window._aeta);return;} t--;
+      e.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); },1000);
+  }
+
+  // Live tracking — 6-step milestones + ETA + distance remaining
+  function tl(id,cls){ const e=document.getElementById(id); if(!e) return;
+    e.classList.remove('done','now'); if(cls) e.classList.add(cls); }
+  function startTracking(){
+    const amb=document.getElementById('trackAmb');
+    const eta=document.getElementById('etaCount'), dist=document.getElementById('distRemain');
+    const positions=[[18,80],[18,61],[72,61],[72,43],[72,21]];
+    tl('tl1','done'); tl('tl2','now'); tl('tl3'); tl('tl4'); tl('tl5');
+    let i=0, t=234, d=1.8;
+    clearInterval(window._trk); clearInterval(window._eta);
+    window._eta=setInterval(()=>{ if(t<=0){clearInterval(window._eta);return;} t--;
+      eta.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); },1000);
+    window._trk=setInterval(()=>{
+      i++;
+      if(i<positions.length){ amb.style.left=positions[i][0]+'%'; amb.style.top=positions[i][1]+'%'; }
+      d=Math.max(0,d-0.35); if(dist) dist.textContent=d.toFixed(1)+' km away';
+      if(i===2){ tl('tl2','done'); tl('tl3','now'); }      // arrived at pickup
+      if(i===3){ tl('tl3','done'); tl('tl4','now'); }      // patient on board
+      if(i===4){ tl('tl4','done'); tl('tl5','now'); }      // approaching hospital
+      if(i>=5){ clearInterval(window._trk); }
+    },1600);
+  }
+
+  // ===== unified outline icon system — replace all emoji with Lucide-style SVG =====
+  const ICONS = {
+    '🚑':'<path d="M3 7h10v8H3z"/><path d="M13 10h4l3 3v2h-7z"/><circle cx="6.5" cy="15.5" r="1.5"/><circle cx="16.5" cy="15.5" r="1.5"/><path d="M5.5 9v3M4 10.5h3"/>',
+    '🏥':'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/>',
+    '👶':'<circle cx="12" cy="7" r="3.2"/><path d="M6.5 21c0-4 2.5-7 5.5-7s5.5 3 5.5 7"/><path d="M10.5 7h.01M13.5 7h.01"/>',
+    '🕊':'<path d="M11 20c-1-6 1-11 9-15-1 8-4 13-9 15z"/><path d="M11 20c-2-2-4-5-4-9"/>',
+    '📍':'<path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/>',
+    '🔔':'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    '📞':'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/>',
+    '🧭':'<circle cx="12" cy="12" r="9"/><path d="M16 8l-2.5 5.5L8 16l2.5-5.5z"/>',
+    '⚡':'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+    '🔑':'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M18 5l1.5 1.5M15 8l1.5 1.5"/>',
+    '🔒':'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    '📱':'<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>',
+    '📲':'<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>',
+    '💳':'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/>',
+    '💵':'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M5 9v6M19 9v6"/>',
+    '👤':'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+    '📷':'<rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 7l1.5-3h5L16 7"/>',
+    '⭐':'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8L3.5 9.7l5.9-.9z"/>',
+    '🏅':'<circle cx="12" cy="9" r="5"/><path d="M9 13.5 8 21l4-2 4 2-1-7.5"/>',
+    '📤':'<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V4M8 8l4-4 4 4"/>',
+    '⬇':'<path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 20h14"/>',
+    '🏠':'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>',
+    '🕑':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    '🚨':'<path d="M5 20a7 7 0 0 1 14 0z"/><path d="M12 9V4M5 7l2 2M19 7l-2 2"/>',
+    '🏦':'<path d="M3 10l9-5 9 5M4 10v10M20 10v10M3 20h18M8 13v4M12 13v4M16 13v4"/>'
+  };
+  const DROP = new Set(['🙏']);
+  const STAR = '<span class="i star"><svg viewBox="0 0 24 24">'+ICONS['⭐']+'</svg></span>';
+  const EMOJI_RE = /([\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}])️?/gu;
+  function iconHTML(ch){
+    if(DROP.has(ch)) return '';
+    if(ICONS[ch]) return '<span class="i'+(ch==='⭐'?' star':'')+'"><svg viewBox="0 0 24 24">'+ICONS[ch]+'</svg></span>';
+    return null;
+  }
+  function iconize(root){
+    const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+    const hits=[]; let node;
+    while(node=walk.nextNode()){ EMOJI_RE.lastIndex=0; if(EMOJI_RE.test(node.nodeValue)) hits.push(node); }
+    hits.forEach(n=>{
+      EMOJI_RE.lastIndex=0;
+      const html=n.nodeValue.replace(EMOJI_RE,(m,ch)=>{ const r=iconHTML(ch); return r===null?m:r; });
+      if(html!==n.nodeValue){ const s=document.createElement('span'); s.innerHTML=html; n.replaceWith(s); }
+    });
+  }
+
+  let _tt;
+  function toast(msg){ const t=document.getElementById('toast');
+    msg=String(msg).replace(EMOJI_RE,(m,ch)=>DROP.has(ch)||ICONS[ch]!==undefined?'':m).trim();
+    t.textContent=msg; t.classList.add('show');
+    clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2200); }
+
+  iconize(document.body);
+
+  // live clock
+  setInterval(()=>{ const d=new Date(); document.getElementById('sb-time').textContent=
+    d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); },10000);
+</script>
+</body>
+</html>
