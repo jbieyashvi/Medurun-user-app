@@ -560,6 +560,19 @@
   .i.star svg{stroke-width:1.6;}
   .flagcode{font-size:.7em;font-weight:800;letter-spacing:.5px;color:var(--navy);
     background:var(--grey-card);border-radius:5px;padding:2px 5px;}
+
+  /* prototype-only demo shortcut (Live Tracking) */
+  .demo-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+    padding:0 18px;border-radius:22px;background:var(--grey-card);color:var(--navy);
+    font-size:13.5px;font-weight:700;cursor:pointer;gap:4px;
+    transition:transform .14s ease, background .16s ease;}
+  .demo-link:hover{background:var(--grey-line);}
+  .demo-link:active{transform:scale(.96);background:#DCE0E6;}
+
+  /* vehicle registration chip */
+  .vreg{display:inline-block;border:1.3px solid var(--grey-line);border-radius:7px;
+    padding:2px 8px;font-size:12.5px;font-weight:800;letter-spacing:.6px;color:var(--navy);
+    background:#fff;font-variant-numeric:tabular-nums;}
 </style>
 </head>
 <body>
@@ -1272,17 +1285,17 @@
     <div class="sheet">
       <div class="grab"></div>
 
-      <!-- driver info — single compact row -->
-      <div class="row between" style="margin-bottom:14px;">
-        <div class="row" style="gap:11px;">
-          <div class="driver-photo" style="width:44px;height:44px;">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M4 22c0-4.6 3.6-7 8-7s8 2.4 8 7z"/></svg><span class="ver-dot"></span>
-          </div>
-          <div><b style="font-size:15px;">Rajesh Kumar</b>
-            <p class="small muted" style="margin-top:2px;">BLS Ambulance · ⭐ 4.9</p>
-            <span class="link-neutral" onclick="toast('UP16 AB 4521 · EMT Certified Paramedic · Verified ID')">View Details →</span></div>
+      <!-- driver info — key details on the card -->
+      <div class="row between" style="margin-bottom:14px;gap:10px;">
+        <div style="min-width:0;flex:1;">
+          <b style="font-size:16px;">Rajesh Kumar</b>
+          <p class="small" style="margin-top:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--navy-soft);font-weight:600;">BLS Ambulance <span class="vreg">UP16 AB 4521</span></p>
+          <p class="small muted" style="margin-top:4px;"><b style="color:var(--navy);">⭐ 4.9</b> · <span class="link-neutral" onclick="openAmbDetails()">View Details →</span></p>
         </div>
-        <div style="text-align:right;flex:none;"><b style="color:var(--red);font-size:21px;line-height:1;" id="etaCount">03:54</b><p class="small muted" id="distRemain" style="margin-top:3px;">1.8 km away</p></div>
+        <div style="text-align:right;flex:none;">
+          <b style="color:var(--red);font-size:21px;line-height:1;" id="etaCount">03:54</b>
+          <p class="small muted" id="distRemain" style="margin-top:3px;">1.8 km away</p>
+        </div>
       </div>
 
       <!-- compact horizontal progress -->
@@ -1298,7 +1311,37 @@
         <button class="btn btn-navy btn-sm" style="gap:7px;" onclick="toast('Calling driver…')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call Driver</button>
         <button class="btn btn-outline btn-sm" style="gap:7px;" onclick="toast('Tracking link shared')"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V4M8 8l4-4 4 4"/></svg>Share Tracking</button>
       </div>
-      <div class="center" style="margin-top:10px;"><span class="small muted" style="cursor:pointer;" onclick="go('s-complete')">Demo · skip to arrival</span></div>
+      <div class="center" style="margin-top:10px;"><span class="demo-link" onclick="go('s-complete')">Demo · Skip to Arrival →</span></div>
+    </div>
+
+    <!-- ===== Ambulance Details bottom sheet ===== -->
+    <div class="scrim" id="ambDetailsScrim" onclick="closeAmbDetails()"></div>
+    <div class="smart-sheet" id="ambDetailsSheet">
+      <div class="grab"></div>
+      <div class="row between" style="margin-bottom:14px;">
+        <h2 style="font-size:18px;">Ambulance Details</h2>
+        <span class="icon-btn" style="width:32px;height:32px;" onclick="closeAmbDetails()">✕</span>
+      </div>
+
+      <div class="row" style="gap:13px;margin-bottom:14px;">
+        <div class="driver-photo" style="width:56px;height:56px;">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M4 22c0-4.6 3.6-7 8-7s8 2.4 8 7z"/></svg><span class="ver-dot"></span>
+        </div>
+        <div style="flex:1;">
+          <div class="row between"><b style="font-size:16px;">Rajesh Kumar</b><span class="badge badge-green">Verified</span></div>
+          <p class="small muted" style="margin-top:2px;">EMT Certified Paramedic</p>
+        </div>
+      </div>
+
+      <div class="card-w" style="padding:4px 14px;border-radius:12px;">
+        <div class="lineitem"><span class="muted">Ambulance Type</span><b style="color:var(--navy);">BLS Ambulance</b></div>
+        <div class="lineitem"><span class="muted">Vehicle Number</span><span class="vreg">UP16 AB 4521</span></div>
+        <div class="lineitem"><span class="muted">Rating</span><b style="color:var(--navy);">⭐ 4.9</b></div>
+        <div class="lineitem"><span class="muted">Completed Rides</span><b style="color:var(--navy);">1,240</b></div>
+        <div class="lineitem"><span class="muted">Assigned Hospital</span><b style="color:var(--navy);">Fortis Hospital, Noida</b></div>
+      </div>
+
+      <button class="btn btn-red" style="margin-top:14px;gap:8px;" onclick="toast('Calling driver…')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call Driver</button>
     </div>
   </section>
 
@@ -1904,6 +1947,16 @@
   }));
 
   function selectAmb(el,next){ go(next); }
+
+  // ===== Live Tracking: Ambulance Details sheet (no navigation) =====
+  function openAmbDetails(){
+    document.getElementById('ambDetailsScrim').classList.add('show');
+    document.getElementById('ambDetailsSheet').classList.add('show');
+  }
+  function closeAmbDetails(){
+    document.getElementById('ambDetailsScrim').classList.remove('show');
+    document.getElementById('ambDetailsSheet').classList.remove('show');
+  }
 
   // ===== confirmation dialog =====
   function showConfirm(title,msg,okLabel,onOk){
