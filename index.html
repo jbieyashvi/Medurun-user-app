@@ -99,8 +99,8 @@
   .field label{display:block;font-size:13px;font-weight:600;color:var(--navy-soft);margin-bottom:7px;}
   .input{width:100%;border:1.6px solid var(--grey-line);background:var(--grey-card);
     border-radius:14px;padding:15px 16px;font-size:15px;color:var(--navy);font-family:inherit;outline:none;
-    transition:border .2s,background .2s;}
-  .input:focus{border-color:var(--red);background:#fff;}
+    transition:border .18s,background .18s,box-shadow .18s;}
+  .input:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(230,57,70,.12);}
   .input::placeholder{color:#A9B2C2;}
   .input-row{display:flex;gap:10px;align-items:center;}
   .pill-prefix{background:var(--grey-card);border:1.6px solid var(--grey-line);border-radius:14px;
@@ -113,6 +113,10 @@
   .chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.4px solid var(--grey-line);
     border-radius:30px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;}
   .chip.on{background:var(--red);color:#fff;border-color:var(--red);}
+  .chip{transition:transform .14s ease, background .16s, border-color .16s, color .16s;}
+  .chip:active{transform:scale(.94);}
+  @keyframes chipPop{0%{transform:scale(.9);}60%{transform:scale(1.08);}100%{transform:scale(1);}}
+  .bloodgrid .chip.on{animation:chipPop .22s ease;}
   .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
     padding:5px 10px;border-radius:20px;}
   .badge-green{background:rgba(43,182,115,.14);color:#1d8f5a;}
@@ -183,12 +187,11 @@
   .timeline .step:last-child::after{display:none;}
   .timeline .step.done::after{background:var(--green);}
 
-  .otp-row{display:flex;gap:9px;justify-content:space-between;margin:8px 0 4px;}
-  .otp-box{flex:1;height:58px;border:1.8px solid var(--grey-line);border-radius:14px;
-    background:var(--grey-card);text-align:center;font-size:24px;font-weight:800;color:var(--navy);
-    display:flex;align-items:center;justify-content:center;transition:border .2s,background .2s;}
+  .otp-row{display:flex;gap:10px;justify-content:center;margin:8px 0 4px;}
+  .otp-box{width:46px;height:54px;flex:none;border:1.8px solid var(--grey-line);border-radius:13px;
+    background:var(--grey-card);text-align:center;font-size:23px;font-weight:800;color:var(--navy);
+    display:flex;align-items:center;justify-content:center;transition:border .18s,background .18s,transform .12s,box-shadow .18s;}
   .otp-box.fill{border-color:var(--red);background:#fff;}
-  .otp-box.cursor{border-color:var(--red);}
 
   .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;}
   .key{background:var(--grey-card);border:none;border-radius:16px;padding:16px;font-size:22px;
@@ -270,12 +273,19 @@
   .obar-step{font-size:11px;font-weight:700;color:var(--grey-text);margin-top:7px;letter-spacing:.2px;}
 
   /* responsive blood-group chips */
-  .bloodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-  .bloodgrid .chip{justify-content:center;padding:10px 0;}
+  .bloodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+  .bloodgrid .chip{justify-content:center;padding:8px 0;font-size:12.5px;}
+
+  /* sticky footer for onboarding forms */
+  .form-footer{flex:none;padding:11px 20px calc(env(safe-area-inset-bottom, 0px) + 14px);
+    background:#fff;border-top:1px solid var(--grey-line);box-shadow:0 -6px 18px rgba(21,35,59,.07);
+    display:flex;gap:10px;}
 
   /* OTP as real inputs */
   .otp-row input.otp-box{outline:none;font-family:inherit;}
-  .otp-row input.otp-box:focus{border-color:var(--red);background:#fff;}
+  .otp-row input.otp-box:focus{border-color:var(--red);background:#fff;transform:scale(1.05);
+    box-shadow:0 0 0 3px rgba(230,57,70,.14);}
+  .btn[disabled]{opacity:.42;pointer-events:none;box-shadow:none;filter:saturate(.6);}
 
   /* ===== minimal line-icon system ===== */
   .icon{width:22px;height:22px;stroke:currentColor;stroke-width:1.7;fill:none;
@@ -581,36 +591,24 @@
     <div class="scroll pt-status">
       <div class="pad" style="padding-top:36px;">
         <div class="login-logo">🚑</div>
-        <h1 style="margin-top:14px;">Welcome back</h1>
-        <p class="sub" style="margin-top:4px;">Sign in to continue</p>
+        <h1 style="margin-top:14px;">Welcome</h1>
+        <p class="sub" style="margin-top:4px;">Enter your phone number to continue</p>
 
-        <div style="margin-top:22px;">
+        <div style="margin-top:24px;">
           <div class="field">
             <label>Phone number</label>
             <div class="input-row">
               <span class="pill-prefix"><span class="flagcode">IN</span> +91</span>
-              <input id="loginPhone" class="input" type="tel" placeholder="98765 43210" value="98765 43210">
+              <input id="loginPhone" class="input" type="tel" inputmode="numeric" placeholder="98765 43210" value="98765 43210">
             </div>
           </div>
-          <div class="field">
-            <label>Password</label>
-            <input id="loginPass" class="input" type="password" placeholder="••••••••" value="password">
-          </div>
-          <div class="row between small" style="margin:2px 0 18px;">
-            <label class="row" style="gap:6px;color:var(--navy-soft);"><input type="checkbox" checked> Remember me</label>
-            <span class="muted" style="font-weight:600;cursor:pointer;" onclick="go('s-forgot')">Forgot password?</span>
-          </div>
-          <button class="btn btn-red" onclick="loginPassword()">Login with Password</button>
+          <button class="btn btn-red" style="margin-top:6px;" onclick="loginOtp()">Continue with OTP</button>
 
-          <div class="divider" style="margin:14px 0;">or</div>
+          <div class="divider" style="margin:16px 0;">new to AmbuCare?</div>
 
-          <button class="btn btn-outline" onclick="loginOtp()">📱 Login with OTP</button>
-
-          <p class="center small" style="margin-top:18px;color:var(--navy-soft);">
-            New here? <span class="textlink" onclick="createAccount()">Create an account</span>
-          </p>
+          <button class="btn btn-outline" onclick="createAccount()">Create New Account</button>
         </div>
-        <p class="center small muted" style="margin-top:22px;line-height:1.6;">By continuing you agree to our<br><b style="color:var(--navy-soft);">Terms</b> & <b style="color:var(--navy-soft);">Privacy Policy</b></p>
+        <p class="center small muted" style="margin-top:22px;line-height:1.6;">We'll send a one-time code to verify your number.<br>By continuing you agree to our <b style="color:var(--navy-soft);">Terms</b> & <b style="color:var(--navy-soft);">Privacy Policy</b></p>
       </div>
     </div>
   </section>
@@ -667,10 +665,9 @@
             <div class="input-row"><span class="pill-prefix" style="height:48px;display:flex;align-items:center;"><span class="flagcode">IN</span> +91</span>
               <input id="regPhone" class="input" style="height:48px;" type="tel" placeholder="98765 43210" value="98765 43210"></div>
           </div>
-          <div class="field"><label>Email</label><input id="regEmail" class="input" style="height:48px;" type="email" placeholder="you@email.com" value="aarav@email.com"></div>
-          <div class="field"><label>Password</label><input id="regPass" class="input" style="height:48px;" type="password" placeholder="••••••••" value="password"></div>
+          <div class="field"><label>Email <span class="muted" style="font-weight:400;">(optional)</span></label><input id="regEmail" class="input" style="height:48px;" type="email" placeholder="you@email.com" value="aarav@email.com"></div>
         </div>
-        <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="submitRegister()">Create Account</button>
+        <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="submitRegister()">Continue</button>
         <p class="center small" style="margin-top:16px;color:var(--navy-soft);">Already have an account? <span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Login</span></p>
       </div>
     </div>
@@ -694,9 +691,11 @@
           <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
           <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*">
         </div>
-        <p class="center muted small" style="margin-top:18px;">Didn't get it? Resend in <b style="color:var(--red);" id="resendTimer">00:24</b></p>
+        <p class="center muted small" style="margin-top:18px;">Didn't receive the code?
+          <span id="resendWrap">Resend in <b style="color:var(--red);" id="resendTimer">00:24</b></span>
+          <span id="resendBtn" class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;display:none;" onclick="resendOtp()">Resend OTP</span></p>
 
-        <button class="btn btn-red" style="margin-top:22px;" onclick="otpVerified()">Verify & Continue</button>
+        <button id="otpVerifyBtn" class="btn btn-red" style="margin-top:22px;" onclick="otpVerified()" disabled>Verify &amp; Continue</button>
       </div>
     </div>
   </section>
@@ -705,30 +704,32 @@
   <section class="screen" id="s-profile">
     <div class="topbar pt-status"><button class="back-btn" onclick="go('s-otp',true)">←</button><h2>Medical Profile</h2></div>
     <div class="obar-wrap"><div class="obar"><i style="width:60%"></i></div><div class="obar-step">Step 3 of 5</div></div>
-    <div class="scroll">
-      <div class="pad" style="padding-top:10px;">
+    <div class="scroll" style="flex:1;">
+      <div class="pad" style="padding-top:8px;padding-bottom:8px;">
         <p class="sub" style="margin-top:0;">Helps paramedics treat you faster in an emergency.</p>
-        <div class="photo-up" style="margin-top:14px;width:88px;height:88px;font-size:28px;" onclick="toast('Photo uploaded')">👤<div class="cam">📷</div></div>
-        <p class="center small muted" style="margin-top:8px;">Add profile photo</p>
+        <div class="photo-up" style="margin-top:10px;width:72px;height:72px;font-size:24px;" onclick="toast('Photo uploaded')">👤<div class="cam">📷</div></div>
+        <p class="center small muted" style="margin-top:6px;">Add profile photo</p>
 
-        <div style="margin-top:14px;">
-          <div class="field" style="margin-bottom:12px;"><label>Full name</label><input class="input" style="height:48px;" value="Aarav Sharma"></div>
-          <div class="field" style="margin-bottom:12px;">
+        <div style="margin-top:12px;">
+          <div class="field" style="margin-bottom:10px;"><label>Full name</label><input class="input" style="height:44px;" value="Aarav Sharma"></div>
+          <div class="field" style="margin-bottom:10px;">
             <label>Blood group</label>
             <div class="bloodgrid">
               <span class="chip">A+</span><span class="chip on">O+</span><span class="chip">B+</span><span class="chip">AB+</span>
               <span class="chip">A−</span><span class="chip">O−</span><span class="chip">B−</span><span class="chip">AB−</span>
             </div>
           </div>
-          <div class="field" style="margin-bottom:12px;"><label>Known allergies</label><input class="input" style="height:48px;" placeholder="e.g. Penicillin, Peanuts" value="Penicillin"></div>
-          <div class="field" style="margin-bottom:12px;"><label>Medical conditions</label><input class="input" style="height:48px;" placeholder="e.g. Asthma, Diabetes" value="Asthma, Hypertension"></div>
-          <div class="field" style="margin-bottom:12px;"><label>Emergency contact</label>
-            <div class="input-row"><span class="pill-prefix" style="height:48px;display:flex;align-items:center;">+91</span><input class="input" style="height:48px;" value="99887 76655"></div>
+          <div class="field" style="margin-bottom:10px;"><label>Known allergies</label><input class="input" style="height:44px;" placeholder="e.g. Penicillin, Peanuts" value="Penicillin"></div>
+          <div class="field" style="margin-bottom:10px;"><label>Medical conditions</label><input class="input" style="height:44px;" placeholder="e.g. Asthma, Diabetes" value="Asthma, Hypertension"></div>
+          <div class="field" style="margin-bottom:0;"><label>Emergency contact</label>
+            <div class="input-row"><span class="pill-prefix" style="height:44px;display:flex;align-items:center;padding:0 14px;">+91</span><input class="input" style="height:44px;" value="99887 76655"></div>
           </div>
         </div>
-        <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="go('s-perm-loc')">Save & Continue</button>
-        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="go('s-perm-loc')">Skip for now</button>
       </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn btn-ghost btn-sm" style="flex:1;height:48px;" onclick="go('s-perm-loc')">Skip for now</button>
+      <button class="btn btn-red btn-sm" style="flex:1.6;height:48px;font-weight:800;" onclick="toast('Profile saved');go('s-perm-loc')">Save &amp; Continue</button>
     </div>
   </section>
 
@@ -1785,8 +1786,12 @@
     if(pass.length<4){ toast('Enter your password'); return; }
     go('s-home');                     // password login → straight to Home
   }
-  function loginOtp(){ loginMode='otp'; go('s-otp'); }
-  function createAccount(){ go('s-register'); }                    // open Registration screen
+  function loginOtp(){
+    const phone=(document.getElementById('loginPhone').value||'').replace(/\D/g,'');
+    if(phone.length<10){ toast('Enter a valid 10-digit phone number'); return; }
+    loginMode='otp'; go('s-otp');                                  // existing user → OTP → Home
+  }
+  function createAccount(){ go('s-register'); }                    // new user → Registration → OTP → Medical Profile
 
   // forgot-password flow
   function sendResetOtp(){
@@ -1848,17 +1853,49 @@
 
   // ===== OTP: standard mobile input behavior =====
   const otpInputs=[...document.querySelectorAll('#otpRow input.otp-box')];
+  function otpSync(){                                   // enable Verify only on 6 digits
+    const filled=otpInputs.every(b=>/\d/.test(b.value));
+    otpInputs.forEach(b=>b.classList.toggle('fill',!!b.value));
+    const btn=document.getElementById('otpVerifyBtn'); if(btn) btn.disabled=!filled;
+    return filled;
+  }
+  function distributeOtp(str){                          // paste / autofill of full code
+    const digits=(str||'').replace(/\D/g,'').slice(0,6).split('');
+    otpInputs.forEach((b,i)=>b.value=digits[i]||'');
+    (otpInputs[digits.length]||otpInputs[5]).focus();
+    if(otpSync()) setTimeout(otpVerified,250);
+  }
   otpInputs.forEach((box,i)=>{
-    box.addEventListener('input',e=>{
-      box.value=box.value.replace(/\D/g,'').slice(0,1);   // digits only
-      if(box.value && i<otpInputs.length-1) otpInputs[i+1].focus();  // auto-advance
-      if(otpInputs.every(b=>b.value)) setTimeout(otpVerified,200);   // auto-submit
+    box.addEventListener('input',()=>{
+      if(box.value.length>1){ distributeOtp(box.value); return; }   // handles paste into a box
+      box.value=box.value.replace(/\D/g,'').slice(0,1);
+      if(box.value && i<otpInputs.length-1) otpInputs[i+1].focus();
+      if(otpSync()) setTimeout(otpVerified,200);
     });
     box.addEventListener('keydown',e=>{
-      if(e.key==='Backspace' && !box.value && i>0){ otpInputs[i-1].focus(); otpInputs[i-1].value=''; }
+      if(e.key==='Backspace' && !box.value && i>0){ otpInputs[i-1].focus(); otpInputs[i-1].value=''; otpSync(); }
     });
+    box.addEventListener('paste',e=>{ e.preventDefault(); distributeOtp((e.clipboardData||window.clipboardData).getData('text')); });
   });
-  function resetOtp(){ otpInputs.forEach(b=>b.value=''); setTimeout(()=>otpInputs[0]?.focus(),120); }
+  const OTP_DEMO='482913';
+  function startResend(){                               // 24s countdown → enable Resend
+    let t=24; const w=document.getElementById('resendWrap'), b=document.getElementById('resendBtn'),
+      tm=document.getElementById('resendTimer');
+    if(w) w.style.display=''; if(b) b.style.display='none';
+    clearInterval(window._resend); window._resend=setInterval(()=>{
+      t--; if(tm) tm.textContent='00:'+String(t).padStart(2,'0');
+      if(t<=0){ clearInterval(window._resend); if(w) w.style.display='none'; if(b) b.style.display=''; }
+    },1000);
+  }
+  function resendOtp(){ resetOtp(); startResend(); toast('OTP resent to +91 98765 43210'); }
+  function resetOtp(){
+    otpInputs.forEach(b=>{ b.value=''; b.classList.remove('fill'); });
+    otpSync();
+    setTimeout(()=>otpInputs[0]?.focus(),120);
+    startResend();
+    clearTimeout(window._otpAuto);                     // prototype auto-detect ~2s later
+    window._otpAuto=setTimeout(()=>{ if(current==='s-otp' && !otpInputs.some(b=>b.value)){ toast('Code detected'); distributeOtp(OTP_DEMO); } },2200);
+  }
   function changeNumber(){ go(loginMode==='register' ? 's-register' : 'reset'===loginMode ? 's-forgot' : 's-login', true); }
 
   // blood-group single-select
