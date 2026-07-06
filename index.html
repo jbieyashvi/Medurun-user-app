@@ -18,7 +18,7 @@
     --amber:#F4A340;
     --shadow:0 8px 30px rgba(21,35,59,.10);
     --shadow-lg:0 18px 50px rgba(21,35,59,.18);
-    --r:22px;
+    --r:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
@@ -75,7 +75,7 @@
   .center{text-align:center;}
 
   .btn{display:flex;align-items:center;justify-content:center;gap:9px;
-    width:100%;border:none;border-radius:18px;padding:17px;font-size:16px;font-weight:700;
+    width:100%;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;
     cursor:pointer;transition:transform .12s ease, box-shadow .2s, background .2s;
     font-family:inherit;}
   .btn:active{transform:scale(.97);}
@@ -85,7 +85,7 @@
   .btn-ghost{background:var(--grey-card);color:var(--navy);}
   .btn-outline{background:#fff;color:var(--navy);border:1.6px solid var(--grey-line);}
   .btn-line-red{background:#fff;color:var(--red);border:1.6px solid var(--red);}
-  .btn-sm{padding:13px;font-size:14px;border-radius:14px;}
+  .btn-sm{padding:13px;font-size:14px;border-radius:12px;}
 
   .back-btn{width:42px;height:42px;border-radius:50%;background:var(--grey-card);
     border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -158,7 +158,7 @@
 
   /* sheet that floats over map */
   .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;
-    border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(21,35,59,.14);z-index:40;
+    border-radius:22px 22px 0 0;box-shadow:0 -10px 40px rgba(21,35,59,.14);z-index:40;
     padding:16px 20px 22px;}
   .grab{width:40px;height:5px;border-radius:5px;background:var(--grey-line);margin:0 auto 14px;}
 
@@ -309,7 +309,8 @@
 
   /* refined location card */
   .loc-card{background:#fff;border:1px solid var(--grey-line);border-radius:16px;
-    box-shadow:0 4px 16px rgba(21,35,59,.08);padding:11px 14px;}
+    box-shadow:0 4px 16px rgba(21,35,59,.08);padding:11px 14px;transition:transform .1s,background .15s;}
+  .loc-card.tap:active{transform:scale(.98);background:var(--grey-card);}
   .icon-btn{width:42px;height:42px;border-radius:12px;background:#fff;border:1px solid var(--grey-line);
     display:flex;align-items:center;justify-content:center;color:var(--navy);cursor:pointer;
     box-shadow:0 4px 14px rgba(21,35,59,.08);}
@@ -377,6 +378,13 @@
   .menu-item.danger{color:var(--red);}
   .menu-item.danger .icon{color:var(--red);}
   .menu-item:active{background:var(--grey-card);}
+
+  /* tappable profile card */
+  .profile-card{cursor:pointer;transition:transform .16s ease, background .16s ease;}
+  .profile-card:active{transform:scale(.99);background:var(--grey-card);}
+  .prof-edit{flex:none;display:flex;align-items:center;gap:5px;align-self:flex-start;
+    font-size:12.5px;font-weight:700;color:var(--red);}
+  .prof-edit .icon{width:15px;height:15px;color:var(--red);}
 
   /* ===== notification cards ===== */
   .notif{display:flex;gap:13px;padding:14px;border:1px solid var(--grey-line);border-radius:16px;
@@ -476,17 +484,60 @@
   .scrim{position:absolute;inset:0;background:rgba(14,22,38,.45);opacity:0;visibility:hidden;
     transition:opacity .3s,visibility .3s;z-index:65;}
   .scrim.show{opacity:1;visibility:visible;}
-  .smart-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;
+
+  /* confirm dialog */
+  .dialog-scrim{position:absolute;inset:0;background:rgba(14,22,38,.5);display:flex;align-items:center;
+    justify-content:center;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s;z-index:210;padding:34px;}
+  .dialog-scrim.show{opacity:1;visibility:visible;}
+  .dialog{background:#fff;border-radius:20px;padding:22px 20px;width:100%;max-width:290px;text-align:center;
+    box-shadow:var(--shadow-lg);transform:scale(.9);transition:transform .22s;}
+  .dialog-scrim.show .dialog{transform:scale(1);}
+  .smart-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;
     box-shadow:0 -10px 40px rgba(21,35,59,.2);z-index:70;padding:12px 20px 20px;
     transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);}
   .smart-sheet.show{transform:translateY(0);}
-  .reco-card{position:relative;border:1.5px solid rgba(230,57,70,.35);border-radius:16px;
+  .reco-card{position:relative;border:1.5px solid rgba(230,57,70,.35);border-radius:14px;
     padding:13px 14px;background:rgba(230,57,70,.03);}
-  .reco-tag{position:absolute;top:-9px;left:14px;background:var(--red);color:#fff;font-size:10px;
-    font-weight:800;letter-spacing:.4px;padding:3px 9px;border-radius:20px;}
+  /* interactive pickup/destination rows */
+  .route-card{background:var(--grey-card);border-radius:12px;padding:4px 6px;margin-top:6px;}
+  .tap-row{display:flex;align-items:center;gap:11px;padding:11px 8px;border-radius:11px;cursor:pointer;
+    transition:transform .16s ease, background .16s ease;}
+  .tap-row:active{background:#E7EBF1;transform:scale(.985);}
+  .tap-row .chev{width:8px;height:8px;border-right:1.7px solid #A9B2C2;border-bottom:1.7px solid #A9B2C2;
+    transform:rotate(-45deg);flex:none;}
+  .tap-row b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rc-dot{width:16px;text-align:center;font-size:14px;flex:none;}
+  .rc-connector{display:flex;align-items:center;gap:8px;padding:0 8px;}
+  .rc-connector span{width:16px;text-align:center;color:#C2CAD6;}
+  .rc-line{height:1px;flex:1;background:var(--grey-line);}
+
+  .reco-tag{display:inline-block;background:var(--red);color:#fff;font-size:9.5px;
+    font-weight:800;letter-spacing:.5px;padding:3px 9px;border-radius:20px;}
   .smart-link{display:flex;align-items:center;justify-content:space-between;padding:11px 2px;
     font-size:13.5px;font-weight:600;color:var(--navy);cursor:pointer;}
   .smart-link .chev{width:8px;height:8px;border-right:1.6px solid #C2CAD6;border-bottom:1.6px solid #C2CAD6;transform:rotate(-45deg);}
+
+  /* ===== inline expandable panels (single-sheet booking) ===== */
+  .inline-panel{background:var(--grey-card);border-radius:12px;padding:4px 12px;margin-top:8px;
+    max-height:236px;overflow-y:auto;scrollbar-width:none;animation:panelIn .22s ease;}
+  .inline-panel::-webkit-scrollbar{display:none;}
+  @keyframes panelIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+  .opt-row{display:flex;align-items:center;gap:11px;padding:11px 4px;cursor:pointer;font-size:14px;
+    font-weight:600;color:var(--navy);border-bottom:1px solid var(--grey-line);}
+  .opt-row:last-child{border-bottom:none;}
+  .opt-row:active{opacity:.6;}
+  .opt-row p{font-weight:400;margin-top:1px;}
+  .opt-row.sel{color:var(--red);}
+  .opt-row .meta{margin-left:auto;text-align:right;font-size:12.5px;color:var(--grey-text);font-weight:600;flex:none;}
+  .opt-row.sel .meta{color:var(--red);}
+  .opt-ic{width:34px;height:34px;border-radius:9px;background:#fff;display:flex;align-items:center;
+    justify-content:center;flex:none;}
+  .opt-ic .icon{width:18px;height:18px;color:var(--navy);}
+  .opt-row.sel .opt-ic .icon{color:var(--red);}
+  .panel-search{width:100%;height:40px;border:1.5px solid var(--grey-line);border-radius:11px;
+    padding:0 12px;font-size:14px;font-family:inherit;outline:none;margin:8px 0 4px;background:#fff;color:var(--navy);}
+  .panel-search:focus{border-color:var(--red);}
+  .panel-lbl{font-size:10.5px;font-weight:700;color:var(--grey-text);letter-spacing:.4px;margin:8px 4px 0;}
   /* de-emphasized secondary action */
   .smart-link.sec{color:var(--grey-text);font-size:12.5px;font-weight:600;padding:9px 2px;}
   .smart-link.sec:active{opacity:.6;}
@@ -792,11 +843,11 @@
 
     <!-- top bar: location card + bell -->
     <div style="position:absolute;top:54px;left:18px;right:18px;z-index:30;" class="row">
-      <div class="loc-card row" style="flex:1;gap:11px;">
+      <div class="loc-card row tap" style="flex:1;gap:11px;cursor:pointer;" onclick="openPickupSheet()">
         <span class="avatar" style="width:32px;height:32px;font-size:12px;">AS</span>
         <div style="flex:1;line-height:1.25;">
-          <p class="small muted" style="margin:0;font-size:11px;">Current location</p>
-          <b style="font-size:14px;color:var(--navy);">Sector 18, Noida</b>
+          <p class="small muted" style="margin:0;font-size:11px;">Pickup location</p>
+          <b style="font-size:14px;color:var(--navy);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="homeLocName">Sector 18, Noida</b>
         </div>
         <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#9AA3B2;"><path d="M9 6l6 6-6 6"/></svg>
       </div>
@@ -825,12 +876,8 @@
       </div>
       <div id="homeCTA">
         <button class="btn btn-red" id="homeBookBtn" onclick="openSmartSheet()">Book Ambulance</button>
-        <div class="row" style="gap:10px;margin-top:10px;">
-          <button class="btn btn-outline btn-sm" style="gap:7px;" onclick="go('s-hospitals')">
-            <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>Nearby Hospitals</button>
-          <button class="btn btn-outline btn-sm" style="gap:7px;" onclick="toast('Calling 108…')">
-            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call 108</button>
-        </div>
+        <button class="btn btn-outline btn-sm" style="gap:7px;margin-top:10px;" onclick="toast('Calling 108…')">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call 108 — Govt Ambulance</button>
       </div>
     </div>
 
@@ -854,39 +901,58 @@
       <p class="muted small" style="margin-bottom:13px;">Auto-selected for the fastest emergency response.</p>
 
       <!-- recommended ambulance -->
-      <div class="reco-card">
-        <span class="reco-tag" id="recoTag">RECOMMENDED</span>
+      <div class="reco-card" style="padding:11px 13px;">
+        <span class="reco-tag" id="recoTag" style="margin-bottom:9px;">RECOMMENDED</span>
         <div class="row between">
           <div class="row" style="gap:11px;">
-            <div class="hist-ic" style="width:40px;height:40px;" id="recoIcon">🚑</div>
-            <div><h3 style="font-size:15px;" id="recoName">BLS Ambulance</h3><p class="small muted" style="margin-top:2px;" id="recoSub">Basic Life Support · ⭐ 4.8</p></div>
+            <div class="hist-ic" style="width:38px;height:38px;" id="recoIcon">🚑</div>
+            <div><h3 style="font-size:15px;" id="recoName">BLS Ambulance</h3><p class="small muted" style="margin-top:1px;" id="recoSub">Basic Life Support · ⭐ 4.8</p></div>
           </div>
           <div class="center"><span class="small muted">ETA</span><br><b style="color:var(--red);font-size:16px;" id="recoEta">4 min</b></div>
         </div>
       </div>
-      <div class="smart-link sec" onclick="closeSmartSheet();selectedHospital=null;go('s-amb-type')">
+      <div class="smart-link sec" id="ambToggle" onclick="toggleAmbPanel()">
         <span>Need advanced care? Change Ambulance Type</span><i class="chev"></i></div>
+      <!-- inline ambulance list -->
+      <div class="inline-panel" id="ambPanel" style="display:none;"></div>
 
-      <!-- pickup + destination (auto) -->
-      <div class="card" style="padding:12px 14px;margin-top:6px;">
-        <div class="row"><span style="color:var(--green);font-size:14px;">●</span>
-          <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">PICKUP · AUTO-DETECTED</p><b style="font-size:14px;">Current Location · Sector 18, Noida</b></div></div>
-        <div style="display:flex;align-items:center;gap:8px;margin:8px 0;">
-          <span style="width:14px;text-align:center;color:#C2CAD6;">⋮</span><div style="height:1px;flex:1;background:var(--grey-line);"></div></div>
-        <div class="row"><svg class="icon icon-sm" viewBox="0 0 24 24" style="width:15px;height:15px;color:var(--red);"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
-          <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">DESTINATION · NEAREST EMERGENCY</p><b style="font-size:14px;" id="smartDestName">Fortis Hospital, Noida · 2.4 km</b></div></div>
+      <!-- trip details -->
+      <p class="small muted" style="font-weight:700;margin:14px 2px 0;letter-spacing:.3px;">TRIP DETAILS</p>
+      <!-- pickup + destination — interactive rows -->
+      <div class="route-card">
+        <div class="tap-row" onclick="togglePickupPanel()">
+          <span class="rc-dot" style="color:var(--green);">●</span>
+          <div style="flex:1;min-width:0;"><p class="small muted" style="margin:0;font-size:11px;">PICKUP</p><b style="font-size:14px;" id="smartPickupName">Current Location · Sector 18, Noida</b></div>
+          <i class="chev"></i></div>
+        <div class="rc-connector"><span>⋮</span><div class="rc-line"></div></div>
+        <div class="tap-row" onclick="toggleDestPanel()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" style="width:16px;height:16px;color:var(--red);"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          <div style="flex:1;min-width:0;"><p class="small muted" style="margin:0;font-size:11px;">DESTINATION</p><b style="font-size:14px;" id="smartDestName">Fortis Hospital, Noida · 2.4 km</b></div>
+          <i class="chev"></i></div>
       </div>
-      <div class="smart-link" onclick="closeSmartSheet();go('s-pickup')">
-        <span>Change Destination</span><i class="chev"></i></div>
+      <!-- inline pickup panel -->
+      <div class="inline-panel" id="pickupPanel" style="display:none;">
+        <input class="panel-search" placeholder="Search address…" oninput="filterPickup(this.value)">
+        <div class="opt-row" onclick="setPickup('Current Location · Sector 18, Noida')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div><div>Use Current Location<p class="small muted">GPS · Sector 18, Noida</p></div></div>
+        <div class="opt-row" onclick="setPickup('Pinned location · Map')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div><div>Drop Pin on Map<p class="small muted">Set pickup manually</p></div></div>
+        <p class="panel-lbl">RECENT LOCATIONS</p>
+        <div id="pickupRecent"></div>
+      </div>
+
+      <!-- inline destination panel -->
+      <div class="inline-panel" id="destPanel" style="display:none;">
+        <input class="panel-search" id="destSearch" placeholder="Search hospital…" oninput="renderDestList(this.value)">
+        <div id="destList"></div>
+      </div>
 
       <!-- fare -->
-      <div class="card-w" style="padding:11px 14px;margin-top:6px;">
+      <div class="card-w" style="padding:11px 14px;margin-top:12px;border-radius:12px;">
         <div class="row between"><b>Total Fare</b><b style="font-size:18px;" id="smartTotal">₹899</b></div>
         <div class="row between" onclick="toggleFare('smartFareDetail','smartFareChev')" style="cursor:pointer;margin-top:8px;">
           <span class="small" style="color:var(--red);font-weight:700;">View Fare Details</span>
           <svg id="smartFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
         </div>
-        <div id="smartFareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;">
+        <div id="smartFareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;animation:panelIn .2s ease;">
           <div class="lineitem" style="padding:6px 0;"><span>Base fare</span><span id="fareBase">₹499</span></div>
           <div class="lineitem" style="padding:6px 0;"><span id="smartDistLabel">Distance (2.4 km × ₹120)</span><span id="smartDistVal">₹288</span></div>
           <div class="lineitem" style="padding:6px 0;"><span>Medical equipment</span><span>₹150</span></div>
@@ -895,8 +961,70 @@
         </div>
       </div>
 
-      <button class="btn btn-red" id="smartCta" style="height:52px;margin-top:14px;" onclick="confirmSmart()">Confirm Booking · ₹899</button>
+      <button class="btn btn-red" id="smartCta" style="height:50px;margin-top:16px;font-weight:800;font-size:16px;letter-spacing:.2px;" onclick="confirmSmart()">Confirm Booking · ₹899</button>
       <p class="center small muted" style="margin-top:8px;">Pay after the ride · Free cancellation in 2 min</p>
+    </div>
+
+    <!-- ===== Select Pickup Location sheet ===== -->
+    <div class="scrim" id="pickupScrim" onclick="closePickupSheet()"></div>
+    <div class="smart-sheet" id="pickupLocSheet" style="max-height:86%;overflow-y:auto;">
+      <div class="grab"></div>
+      <div class="row between" style="margin-bottom:10px;">
+        <h2 style="font-size:18px;">Select Pickup Location</h2>
+        <span class="icon-btn" style="width:32px;height:32px;" onclick="closePickupSheet()">✕</span>
+      </div>
+      <input class="panel-search" id="pickupSearch" style="margin-top:0;" placeholder="Search address…" oninput="renderPickupResults(this.value)">
+
+      <div id="pickupResults"></div>
+
+      <div id="pickupBrowse">
+        <div class="opt-row" onclick="pickLoc('Current Location · Sector 18, Noida')">
+          <div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+          <div style="color:var(--red);">Use Current Location<p class="small muted">GPS · Sector 18, Noida</p></div></div>
+        <div class="opt-row" onclick="closePickupSheet();go('s-droppin')">
+          <div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+          <div>Drop Pin on Map<p class="small muted">Set pickup manually</p></div></div>
+
+        <p class="panel-lbl" style="margin-top:12px;">RECENT LOCATIONS</p>
+        <div class="opt-row" onclick="pickLoc('Home · A-101, Sector 62, Noida')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg></div><div>Home<p class="small muted">A-101, Sector 62, Noida</p></div></div>
+        <div class="opt-row" onclick="pickLoc('Office · Tower B, Sector 63, Noida')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M10 21v-4h4v4"/></svg></div><div>Office<p class="small muted">Tower B, Sector 63, Noida</p></div></div>
+        <div class="opt-row" onclick="pickLoc('Sector 18, Noida')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div>Sector 18, Noida<p class="small muted">Atta Market</p></div></div>
+
+        <p class="panel-lbl" style="margin-top:12px;">SAVED PLACES</p>
+        <div class="opt-row" onclick="pickLoc('Fortis Hospital · Sector 62, Noida')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg></div><div>Fortis Hospital<p class="small muted">Sector 62, Noida</p></div></div>
+        <div class="opt-row" onclick="pickLoc('AIIMS Trauma Centre · Ansari Nagar, New Delhi')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg></div><div>AIIMS Trauma Centre<p class="small muted">Ansari Nagar, New Delhi</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6b. DROP PIN ON MAP ============ -->
+  <section class="screen" id="s-droppin">
+    <div class="map" id="dropMap">
+      <svg viewBox="0 0 390 700" preserveAspectRatio="xMidYMid slice">
+        <rect width="390" height="700" fill="#EAEDF1"/>
+        <path d="M-20 250 H410 M-20 470 H410" stroke="#DDE2E8" stroke-width="24"/>
+        <path d="M120 -20 V720 M280 -20 V720" stroke="#DDE2E8" stroke-width="22"/>
+        <path d="M-20 250 H410" stroke="#fff" stroke-width="2.5" stroke-dasharray="9 13"/>
+        <path d="M280 -20 V720" stroke="#fff" stroke-width="2.5" stroke-dasharray="9 13"/>
+        <circle cx="90" cy="150" r="42" fill="#DEE5DF"/><rect x="300" y="520" width="90" height="90" rx="6" fill="#E2E6EC"/>
+      </svg>
+      <!-- fixed centre pin -->
+      <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);z-index:6;">
+        <svg width="40" height="40" viewBox="0 0 24 24" style="stroke:var(--red);stroke-width:1.8;fill:#fff;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25));"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.6" fill="var(--red)" stroke="none"/></svg>
+      </div>
+      <p style="position:absolute;left:50%;top:38%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;z-index:6;">Move map to adjust pin</p>
+    </div>
+    <div class="topbar pt-status" style="position:absolute;top:0;left:0;right:0;z-index:20;
+      background:linear-gradient(180deg,rgba(255,255,255,.96) 40%,rgba(255,255,255,.7) 80%,transparent);">
+      <button class="back-btn" onclick="go('s-home',true)">←</button><h2 style="color:var(--navy);">Set Pickup Pin</h2>
+    </div>
+    <div class="sheet" style="padding:16px 20px 20px;">
+      <div class="grab"></div>
+      <div class="row" style="gap:11px;margin-bottom:14px;">
+        <svg class="icon" viewBox="0 0 24 24" style="color:var(--red);"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+        <div style="flex:1;"><p class="small muted" style="margin:0;font-size:11px;">PINNED LOCATION</p><b style="font-size:14px;">Sector 18, Noida · Atta Market</b></div>
+      </div>
+      <button class="btn btn-red" style="height:50px;padding:0;" onclick="pickLoc('Pinned Location · Sector 18, Noida'); go('s-home',true)">Confirm Pickup</button>
     </div>
   </section>
 
@@ -1349,14 +1477,15 @@
     </div>
     <div class="scroll">
       <div class="pad" style="padding-top:6px;">
-        <!-- identity -->
-        <div class="card-w row" style="gap:14px;">
-          <div class="avatar" style="width:62px;height:62px;font-size:22px;">AS</div>
-          <div style="flex:1;">
-            <h3 style="font-size:17px;">Aarav Sharma</h3>
-            <p class="small muted" style="margin-top:2px;">+91 98765 43210</p>
-            <span class="badge badge-red" style="margin-top:7px;">O+ · Asthma</span>
+        <!-- identity (tappable → Edit Profile) -->
+        <div class="card-w row profile-card" style="gap:13px;padding:13px 14px;align-items:center;" onclick="go('s-edit-profile')">
+          <div class="avatar" style="width:54px;height:54px;font-size:19px;flex:none;">AS</div>
+          <div style="flex:1;min-width:0;">
+            <h3 style="font-size:16px;">Aarav Sharma</h3>
+            <p class="small muted" style="margin-top:1px;">+91 98765 43210</p>
+            <span class="badge badge-red" style="margin-top:6px;">O+ · Asthma</span>
           </div>
+          <span class="prof-edit"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit</span>
         </div>
 
         <!-- medical info -->
@@ -1367,22 +1496,20 @@
           <div class="lineitem"><span class="muted">Medical conditions</span><b style="color:var(--navy);">Asthma, Hypertension</b></div>
           <div class="lineitem"><span class="muted">Emergency contact</span><b style="color:var(--navy);">+91 99887 76655</b></div>
         </div>
-        <button class="btn btn-outline btn-sm" style="margin-top:12px;height:46px;" onclick="go('s-profile')">Edit Profile</button>
 
         <!-- menu -->
         <p class="small muted" style="font-weight:700;margin:18px 0 8px;">ACCOUNT</p>
         <div class="card-w" style="padding:4px 6px;">
           <div class="menu-item" onclick="go('s-history')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Ride History</span><i></i></div>
-          <div class="menu-item" onclick="toast('Saved Hospitals')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><path d="M12 8v6M9 11h6"/></svg><span>Saved Hospitals</span><i></i></div>
-          <div class="menu-item" onclick="go('s-payment')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg><span>Payment Methods</span><i></i></div>
+          <div class="menu-item" onclick="go('s-payment-methods')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg><span>Payment Methods</span><i></i></div>
           <div class="menu-item" onclick="go('s-notifications')"><svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Notifications</span><i></i></div>
         </div>
 
         <p class="small muted" style="font-weight:700;margin:18px 0 8px;">SUPPORT</p>
         <div class="card-w" style="padding:4px 6px;">
-          <div class="menu-item" onclick="toast('Help & Support')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h0"/></svg><span>Help &amp; Support</span><i></i></div>
-          <div class="menu-item" onclick="toast('Privacy Policy')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V6z"/></svg><span>Privacy Policy</span><i></i></div>
-          <div class="menu-item danger" onclick="go('s-login',true)"><svg class="icon" viewBox="0 0 24 24"><path d="M15 12H4M9 7l-5 5 5 5"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg><span>Logout</span></div>
+          <div class="menu-item" onclick="go('s-help')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h0"/></svg><span>Help &amp; Support</span><i></i></div>
+          <div class="menu-item" onclick="go('s-privacy')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V6z"/></svg><span>Privacy Policy</span><i></i></div>
+          <div class="menu-item danger" onclick="confirmLogout()"><svg class="icon" viewBox="0 0 24 24"><path d="M15 12H4M9 7l-5 5 5 5"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg><span>Logout</span></div>
         </div>
         <p class="center small muted" style="margin:18px 0 6px;">AmbuCare · v1.0.0</p>
       </div>
@@ -1394,6 +1521,111 @@
         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Rides</div>
       <div class="navitem on">
         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+    </div>
+  </section>
+
+  <!-- ============ 17a. EDIT PROFILE ============ -->
+  <section class="screen" id="s-edit-profile">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Edit Profile</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="photo-up" style="margin-top:4px;width:84px;height:84px;font-size:26px;" onclick="toast('Photo updated')">👤<div class="cam">📷</div></div>
+        <p class="center small muted" style="margin-top:8px;">Change photo</p>
+        <div style="margin-top:14px;">
+          <div class="field" style="margin-bottom:12px;"><label>Full name</label><input class="input" style="height:48px;" value="Aarav Sharma"></div>
+          <div class="field" style="margin-bottom:12px;"><label>Phone number</label>
+            <div class="input-row"><span class="pill-prefix" style="height:48px;display:flex;align-items:center;">🇮🇳 +91</span><input class="input" style="height:48px;" value="98765 43210"></div></div>
+          <div class="field" style="margin-bottom:12px;"><label>Blood group</label>
+            <div class="bloodgrid">
+              <span class="chip">A+</span><span class="chip on">O+</span><span class="chip">B+</span><span class="chip">AB+</span>
+              <span class="chip">A−</span><span class="chip">O−</span><span class="chip">B−</span><span class="chip">AB−</span></div></div>
+          <div class="field" style="margin-bottom:12px;"><label>Known allergies</label><input class="input" style="height:48px;" value="Penicillin"></div>
+          <div class="field" style="margin-bottom:12px;"><label>Medical conditions</label><input class="input" style="height:48px;" value="Asthma, Hypertension"></div>
+          <div class="field" style="margin-bottom:12px;"><label>Emergency contact</label>
+            <div class="input-row"><span class="pill-prefix" style="height:48px;display:flex;align-items:center;">+91</span><input class="input" style="height:48px;" value="99887 76655"></div></div>
+        </div>
+        <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="toast('Profile saved');back()">Save Changes</button>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="back()">Cancel</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 17b. SAVED HOSPITALS ============ -->
+  <section class="screen" id="s-saved-hospitals">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Saved Hospitals</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <input class="panel-search" id="savedSearch" style="margin-top:0;" placeholder="Search hospitals…" oninput="renderSaved(this.value)">
+        <div id="savedList" style="margin-top:6px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 17c. PAYMENT METHODS ============ -->
+  <section class="screen" id="s-payment-methods">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Payment Methods</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <p class="small muted" style="font-weight:700;margin-bottom:8px;">UPI</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="toast('aarav@okhdfc selected')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg></div><span>aarav@okhdfcbank</span><span class="badge badge-green">Default</span></div>
+          <div class="menu-item" onclick="toast('98765·@paytm selected')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg></div><span>9876543210@paytm</span><i></i></div>
+        </div>
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">CARDS</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="toast('HDFC ••4521 selected')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg></div><span>HDFC Debit ···· 4521</span><i></i></div>
+          <div class="menu-item" onclick="toast('ICICI ••8830 selected')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg></div><span>ICICI Credit ···· 8830</span><i></i></div>
+        </div>
+        <p class="small muted" style="font-weight:700;margin:18px 0 8px;">OTHER</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="toast('Cash on ride')"><div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div><span>Cash on ride</span><i></i></div>
+        </div>
+        <button class="btn btn-red" style="margin-top:16px;gap:8px;" onclick="toast('Add payment method')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M12 5v14M5 12h14"/></svg>Add Payment Method</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 17d. HELP CENTER ============ -->
+  <section class="screen" id="s-help">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Help Center</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <div class="card" style="padding:14px;background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.25);">
+          <div class="row between"><div class="row" style="gap:10px;"><svg class="icon" viewBox="0 0 24 24" style="color:var(--red);"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h0"/></svg><div><b>Emergency Helpline</b><p class="small muted">24/7 · 108 / 102</p></div></div>
+            <button class="btn btn-red btn-sm" style="width:auto;padding:9px 16px;" onclick="toast('Calling 108…')">Call</button></div>
+        </div>
+        <p class="small muted" style="font-weight:700;margin:16px 0 8px;">FAQs</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="toast('How do I book an ambulance?')"><span>How do I book an ambulance?</span><i></i></div>
+          <div class="menu-item" onclick="toast('How is fare calculated?')"><span>How is the fare calculated?</span><i></i></div>
+          <div class="menu-item" onclick="toast('Can I cancel a booking?')"><span>Can I cancel a booking?</span><i></i></div>
+          <div class="menu-item" onclick="toast('Insurance & claims')"><span>Insurance & claims</span><i></i></div>
+        </div>
+        <p class="small muted" style="font-weight:700;margin:16px 0 8px;">GET SUPPORT</p>
+        <div class="card-w" style="padding:4px 6px;">
+          <div class="menu-item" onclick="toast('Opening chat support…')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Chat Support</span><i></i></div>
+          <div class="menu-item" onclick="toast('Calling support…')"><svg class="icon" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg><span>Contact Support</span><i></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 17e. PRIVACY POLICY ============ -->
+  <section class="screen" id="s-privacy">
+    <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Privacy Policy</h2></div>
+    <div class="scroll">
+      <div class="pad" style="padding-top:6px;">
+        <p class="small muted">Last updated · 06 Jul 2026</p>
+        <h3 style="margin-top:14px;">Your data, protected</h3>
+        <p class="sub" style="margin-top:6px;">AmbuCare collects only what's needed to dispatch emergency care quickly and safely.</p>
+        <p class="small muted" style="font-weight:700;margin:16px 0 6px;">WHAT WE COLLECT</p>
+        <p class="small" style="color:var(--navy-soft);line-height:1.6;">Location (for dispatch), contact details, and the medical profile you provide (blood group, allergies, conditions). Shared with the assigned paramedic only during an active ride.</p>
+        <p class="small muted" style="font-weight:700;margin:16px 0 6px;">HOW WE USE IT</p>
+        <p class="small" style="color:var(--navy-soft);line-height:1.6;">To assign the nearest ambulance, guide the driver, process payment, and generate invoices. We never sell your data.</p>
+        <p class="small muted" style="font-weight:700;margin:16px 0 6px;">YOUR RIGHTS</p>
+        <p class="small" style="color:var(--navy-soft);line-height:1.6;">Access, correct, or delete your data anytime from Edit Profile, or contact support to close your account.</p>
+        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="toast('Full policy opened')">Read Full Policy</button>
+      </div>
     </div>
   </section>
 
@@ -1500,6 +1732,18 @@
     </div>
   </section>
 
+  <!-- confirmation dialog -->
+  <div class="dialog-scrim" id="confirmModal">
+    <div class="dialog">
+      <h3 id="confirmTitle" style="font-size:18px;">Logout?</h3>
+      <p class="sub" id="confirmMsg" style="margin-top:6px;">Are you sure you want to log out?</p>
+      <div class="row" style="gap:10px;margin-top:18px;">
+        <button class="btn btn-ghost btn-sm" style="height:44px;" onclick="hideConfirm()">Cancel</button>
+        <button class="btn btn-red btn-sm" style="height:44px;" id="confirmOk">Logout</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 </div>
 </div>
@@ -1594,6 +1838,7 @@
     // screen-specific hooks
     if(id==='s-otp'){ resetOtp(); }
     if(id==='s-hospitals'){ renderHospitals(); }
+    if(id==='s-saved-hospitals'){ const s=document.getElementById('savedSearch'); if(s) s.value=''; renderSaved(''); }
     if(id==='s-pickup'){ pendingDest=booking.dest; applyDest(); }
     if(id==='s-confirm'){ applyDest(); }
     if(id==='s-search'){ startSearch(); }
@@ -1622,6 +1867,38 @@
   }));
 
   function selectAmb(el,next){ go(next); }
+
+  // ===== confirmation dialog =====
+  function showConfirm(title,msg,okLabel,onOk){
+    document.getElementById('confirmTitle').textContent=title;
+    document.getElementById('confirmMsg').textContent=msg;
+    const ok=document.getElementById('confirmOk'); ok.textContent=okLabel;
+    ok.onclick=()=>{ hideConfirm(); onOk(); };
+    document.getElementById('confirmModal').classList.add('show');
+  }
+  function hideConfirm(){ document.getElementById('confirmModal').classList.remove('show'); }
+  function confirmLogout(){ showConfirm('Logout?','Are you sure you want to log out?','Logout',()=>go('s-login',true)); }
+
+  // ===== Saved Hospitals =====
+  let SAVED=[
+    {name:'Fortis Hospital',sub:'Sector 62, Noida'},
+    {name:'AIIMS Trauma Centre',sub:'Ansari Nagar, New Delhi'},
+    {name:'Max Super Speciality',sub:'Sector 19, Noida'},
+    {name:'Apollo Clinic',sub:'Sector 27, Noida'}
+  ];
+  const SVG_HOSPITAL='<svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg>';
+  function renderSaved(q){
+    q=(q||'').toLowerCase(); const el=document.getElementById('savedList'); if(!el) return;
+    const rows=SAVED.filter(h=>h.name.toLowerCase().includes(q)||h.sub.toLowerCase().includes(q));
+    el.innerHTML=rows.length ? rows.map(h=>`<div class="hist-card" style="align-items:center;">
+        <div class="hist-ic">${SVG_HOSPITAL}</div>
+        <div style="flex:1;"><h3>${h.name}</h3><p class="small muted">${h.sub}</p></div>
+        <button class="icon-btn" style="width:38px;height:38px;border-color:rgba(230,57,70,.3);" onclick="removeSaved('${h.name.replace(/'/g,"\\'")}')">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button></div>`).join('')
+      : '<div class="empty"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/></svg><b>No saved hospitals</b><p class="small">Save hospitals for faster booking</p></div>';
+  }
+  function removeSaved(name){ SAVED=SAVED.filter(h=>h.name!==name);
+    renderSaved(document.getElementById('savedSearch')?.value||''); toast('Removed '+name); }
 
   // ===== Smart Booking sheet (2-tap booking) =====
   const AMB={
@@ -1659,6 +1936,7 @@
   }
   function setReco(key){ currentAmb=key; refreshSmartSheet(); }
   function showSmartSheet(){
+    hideSmartPanels();
     const d=document.getElementById('smartFareDetail'); if(d) d.style.display='none';
     const c=document.getElementById('smartFareChev'); if(c) c.style.transform='';
     document.getElementById('smartScrim').classList.add('show');
@@ -1672,6 +1950,99 @@
   // Choose Ambulance → "Select" returns to the sheet with updated type/ETA/fare (no booking yet)
   function selectAmbType(key){ currentAmb=key; go('s-home',true); refreshSmartSheet(); showSmartSheet(); }
   function confirmSmart(){ closeSmartSheet(); go('s-search'); }   // Tap 2 → booked
+
+  // ===== single-sheet inline editing (no navigation) =====
+  const PICKUP_RECENT=[
+    {name:'Home',sub:'A-101, Sector 62, Noida'},
+    {name:'Office',sub:'Tower B, Sector 63, Noida'},
+    {name:'Sector 18 Metro',sub:'Near DLF Mall, Noida'}
+  ];
+  function hideSmartPanels(){ ['ambPanel','pickupPanel','destPanel'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; }); }
+  function togglePanel(id,render){
+    const p=document.getElementById(id); if(!p) return;
+    const open=p.style.display!=='none'; hideSmartPanels();
+    if(!open){ if(render) render(); p.style.display='block'; p.scrollTop=0; }
+  }
+  // ambulance list
+  function renderAmbList(){
+    const dch=Math.round(booking.dest.km*120);
+    document.getElementById('ambPanel').innerHTML=Object.keys(AMB).map(k=>{
+      const a=AMB[k], fare=(a.total-400)+dch+112;
+      return `<div class="opt-row ${k===currentAmb?'sel':''}" onclick="chooseAmb('${k}')">
+        <div class="opt-ic"><span class="i"><svg viewBox="0 0 24 24">${ICONS[a.icon]||''}</svg></span></div>
+        <div>${a.name}<p class="small muted">${a.sub.split('·')[0].trim()}</p></div>
+        <div class="meta">${a.eta} • ${inr(fare)}</div></div>`;
+    }).join('');
+  }
+  function toggleAmbPanel(){ togglePanel('ambPanel', renderAmbList); }
+  function chooseAmb(k){ currentAmb=k; refreshSmartSheet(); hideSmartPanels(); }
+  // pickup
+  function renderPickupRecent(q){
+    q=(q||'').toLowerCase();
+    document.getElementById('pickupRecent').innerHTML=PICKUP_RECENT
+      .filter(r=>!q||r.name.toLowerCase().includes(q)||r.sub.toLowerCase().includes(q))
+      .map(r=>`<div class="opt-row" onclick="setPickup('${r.name} · ${r.sub}')">
+        <div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div>${r.name}<p class="small muted">${r.sub}</p></div></div>`).join('')
+      || '<p class="small muted" style="padding:12px 4px;">No matches</p>';
+  }
+  function togglePickupPanel(){ togglePanel('pickupPanel', ()=>renderPickupRecent('')); }
+  function filterPickup(q){ renderPickupRecent(q); }
+  function setPickup(text){ booking.pickup=text; setTxt('smartPickupName', text); hideSmartPanels(); }
+  // destination
+  function renderDestList(q){
+    q=(q||'').toLowerCase();
+    const rows=DESTS.map((d,i)=>({d,i})).filter(({d})=>!q||d.name.toLowerCase().includes(q));
+    const lbl=q?'':'<p class="panel-lbl" style="margin-top:2px;">NEAREST HOSPITALS</p>';
+    document.getElementById('destList').innerHTML=lbl+(rows.map(({d,i})=>`<div class="opt-row ${d.name===booking.dest.name?'sel':''}" onclick="chooseDest(${i})">
+        <div class="opt-ic"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5"/><path d="M12 7v4M10 9h4"/></svg></div>
+        <div>${d.name}<p class="small muted">${d.city}${i===0?' · Nearest':''}</p></div>
+        <div class="meta">${d.dist} • ${d.eta}</div></div>`).join('')
+      || '<p class="small muted" style="padding:12px 4px;">No matches</p>');
+  }
+  function toggleDestPanel(){ togglePanel('destPanel', ()=>{ const s=document.getElementById('destSearch'); if(s) s.value=''; renderDestList(''); }); }
+  function chooseDest(i){ booking.dest=DESTS[i]; refreshSmartSheet(); hideSmartPanels(); }
+
+  // ===== Home: Select Pickup Location sheet =====
+  const PICKUP_PLACES=[
+    {name:'Home',sub:'A-101, Sector 62, Noida',val:'Home · A-101, Sector 62, Noida'},
+    {name:'Office',sub:'Tower B, Sector 63, Noida',val:'Office · Tower B, Sector 63, Noida'},
+    {name:'Sector 18, Noida',sub:'Atta Market',val:'Sector 18, Noida'},
+    {name:'Fortis Hospital',sub:'Sector 62, Noida',val:'Fortis Hospital · Sector 62, Noida'},
+    {name:'AIIMS Trauma Centre',sub:'Ansari Nagar, New Delhi',val:'AIIMS Trauma Centre · Ansari Nagar, New Delhi'},
+    {name:'Sector 137, Noida',sub:'Noida–Greater Noida Expressway',val:'Sector 137, Noida'},
+    {name:'Cyber Hub',sub:'DLF Phase 2, Gurugram',val:'Cyber Hub · Gurugram'},
+    {name:'Connaught Place',sub:'New Delhi',val:'Connaught Place · New Delhi'}
+  ];
+  function openPickupSheet(){
+    const s=document.getElementById('pickupSearch'); if(s) s.value='';
+    renderPickupResults('');
+    document.getElementById('pickupScrim').classList.add('show');
+    document.getElementById('pickupLocSheet').classList.add('show');
+  }
+  function closePickupSheet(){
+    document.getElementById('pickupScrim').classList.remove('show');
+    document.getElementById('pickupLocSheet').classList.remove('show');
+  }
+  function renderPickupResults(q){
+    q=(q||'').trim().toLowerCase();
+    const res=document.getElementById('pickupResults'), browse=document.getElementById('pickupBrowse');
+    if(!q){ res.innerHTML=''; browse.style.display='block'; return; }
+    browse.style.display='none';
+    const pin='<svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
+    const hits=PICKUP_PLACES.filter(p=>p.name.toLowerCase().includes(q)||p.sub.toLowerCase().includes(q));
+    res.innerHTML=hits.length
+      ? hits.map(p=>`<div class="opt-row" onclick="pickLoc('${p.val.replace(/'/g,"\\'")}')"><div class="opt-ic">${pin}</div><div>${p.name}<p class="small muted">${p.sub}</p></div></div>`).join('')
+      : `<div class="opt-row" onclick="pickLoc('${q} (searched)')"><div class="opt-ic">${pin}</div><div>Use “${q}”<p class="small muted">Search this address</p></div></div>`;
+  }
+  function pickLoc(text){
+    booking.pickup=text;
+    setTxt('homeLocName', text);
+    setTxt('smartPickupName', text);          // sync Smart Booking sheet if open
+    refreshSmartSheet();                       // recalc ETA / recommendation if needed
+    closePickupSheet();
+    toast('Pickup set · '+text.split(' · ')[0]);
+  }
 
   // ===== Set Route: destination selection + persistence =====
   function selectDest(i){
