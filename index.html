@@ -383,8 +383,8 @@
     display:flex;align-items:center;justify-content:center;line-height:0;cursor:pointer;z-index:8;
     box-shadow:0 2px 7px rgba(21,35,59,.26);transform:translate(-50%,-50%);}
   .ambmk svg{position:static;inset:auto;display:block;width:16px;height:16px;margin:0;padding:0;
-    stroke:var(--navy);stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
-  .ambmk.near{box-shadow:0 0 0 3px rgba(230,57,70,.16),0 2px 8px rgba(21,35,59,.28);}
+    stroke:var(--red);stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .ambmk.near{box-shadow:0 0 0 3px rgba(242,53,69,.18),0 2px 8px rgba(21,35,59,.28);}
   .ambmk.near svg{stroke:var(--red);}
   .ambmk:active{transform:translate(-50%,-50%) scale(.9);}
   @keyframes drift1{0%,100%{margin:0 0;}50%{margin:-5px 0 0 4px;}}
@@ -953,7 +953,7 @@
           <p class="small muted" style="margin:0;font-size:11px;">Pickup location</p>
           <b style="font-size:14px;color:var(--navy);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="homeLocName">Sector 18, Noida</b>
         </div>
-        <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:#9AA3B2;"><path d="M9 6l6 6-6 6"/></svg>
+        <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--blue);"><path d="M9 6l6 6-6 6"/></svg>
       </div>
       <button class="icon-btn" style="margin-left:10px;" onclick="go('s-notifications')">
         <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
@@ -980,7 +980,7 @@
       </div>
       <div id="homeCTA">
         <button class="btn btn-red emg" id="homeBookBtn" onclick="openSmartSheet()">Book Ambulance</button>
-        <button class="btn btn-line-red btn-sm" style="gap:7px;margin-top:10px;" onclick="toast('Calling 108…')">
+        <button class="btn btn-outline btn-sm" style="gap:7px;margin-top:10px;" onclick="toast('Calling 108…')">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call 108 — Govt Ambulance</button>
       </div>
     </div>
