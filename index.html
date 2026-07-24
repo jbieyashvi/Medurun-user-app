@@ -1389,16 +1389,15 @@
       <div class="grab"></div>
 
       <!-- driver info — key details on the card -->
-      <div class="row between" style="margin-bottom:14px;gap:10px;">
-        <div style="min-width:0;flex:1;">
-          <b style="font-size:16px;">Rajesh Kumar</b>
-          <p class="small" style="margin-top:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--navy-soft);font-weight:600;">BLS Ambulance <span class="vreg">UP16 AB 4521</span></p>
-          <p class="small muted" style="margin-top:4px;"><b style="color:var(--navy);">⭐ 4.9</b> · <span class="link-neutral" onclick="openAmbDetails()">View Details →</span></p>
-        </div>
-        <div style="text-align:right;flex:none;">
-          <b style="color:var(--red);font-size:21px;line-height:1;" id="etaCount">03:54</b>
-          <p class="small muted" id="distRemain" style="margin-top:3px;">1.8 km away</p>
-        </div>
+      <div style="margin-bottom:13px;">
+        <b style="font-size:16px;">Rajesh Kumar</b>
+        <p class="small" style="margin-top:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--navy-soft);font-weight:600;">BLS Ambulance <span class="vreg">UP16 AB 4521</span></p>
+        <p class="small muted" style="margin-top:4px;"><b style="color:var(--navy);">⭐ 4.9</b> · <span class="link-neutral" onclick="openAmbDetails()">View Details →</span></p>
+      </div>
+      <!-- arrival estimate -->
+      <div class="row between" style="background:rgba(242,53,69,.06);border-radius:11px;padding:10px 13px;margin-bottom:14px;">
+        <b style="color:var(--red);font-size:15px;">Will arrive in <span id="etaMins">4 mins</span></b>
+        <span class="small muted" id="distRemain">0.8 km away</span>
       </div>
 
       <!-- compact horizontal progress -->
@@ -1437,6 +1436,7 @@
       </div>
 
       <div class="card-w" style="padding:4px 14px;border-radius:12px;">
+        <div class="lineitem"><span class="muted">Estimated Arrival</span><b style="color:var(--red);" id="adEta">4 mins</b></div>
         <div class="lineitem"><span class="muted">Ambulance Type</span><b style="color:var(--navy);">BLS Ambulance</b></div>
         <div class="lineitem"><span class="muted">Vehicle Number</span><span class="vreg">UP16 AB 4521</span></div>
         <div class="lineitem"><span class="muted">Rating</span><b style="color:var(--navy);">⭐ 4.9</b></div>
@@ -2394,13 +2394,15 @@
     e.classList.remove('done','now'); if(cls) e.classList.add(cls); }
   function startTracking(){
     const amb=document.getElementById('trackAmb');
-    const eta=document.getElementById('etaCount'), dist=document.getElementById('distRemain');
+    const eta=document.getElementById('etaMins'), dist=document.getElementById('distRemain'), etaD=document.getElementById('adEta');
     const positions=[[18,80],[18,61],[72,61],[72,43],[72,21]];
     tl('tl1','done'); tl('tl2','now'); tl('tl3'); tl('tl4'); tl('tl5');
     let i=0, t=234, d=1.8;
+    const showMins=()=>{ const m=Math.max(1,Math.ceil(t/60)), txt=m+(m===1?' min':' mins');
+      if(eta) eta.textContent=txt; if(etaD) etaD.textContent=txt; };
+    showMins();
     clearInterval(window._trk); clearInterval(window._eta);
-    window._eta=setInterval(()=>{ if(t<=0){clearInterval(window._eta);return;} t--;
-      eta.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); },1000);
+    window._eta=setInterval(()=>{ if(t<=0){clearInterval(window._eta);return;} t--; showMins(); },1000);
     window._trk=setInterval(()=>{
       i++;
       if(i<positions.length){ amb.style.left=positions[i][0]+'%'; amb.style.top=positions[i][1]+'%'; }
