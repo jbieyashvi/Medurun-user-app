@@ -359,6 +359,14 @@
     stroke-linecap:round;stroke-linejoin:round;}
   .support-fab:active{transform:scale(.94);}
 
+  /* floating Emergency button — alerts Medurun ops (only red FAB) */
+  .em-fab{position:absolute;width:48px;height:48px;border-radius:50%;background:#fff;
+    border:1.6px solid var(--red);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--red);cursor:pointer;box-shadow:0 5px 16px rgba(242,53,69,.24);z-index:60;gap:1px;}
+  .em-fab svg{width:20px;height:20px;stroke:var(--red);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .em-fab span{font-size:7.5px;font-weight:800;letter-spacing:.2px;line-height:1;}
+  .em-fab:active{transform:scale(.94);}
+
   /* lighter, more compact bottom sheet */
   #s-home .sheet{border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(21,35,59,.10);padding:14px 22px 84px;}
   #s-home .sheet h2{font-size:18px;font-weight:700;}
@@ -984,8 +992,8 @@
       <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
     </button>
     <!-- SOS: clean, always visible -->
-    <button class="support-fab" style="right:20px;top:400px;" onclick="openSupport()" aria-label="Support">
-      <svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2zM20 14a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2z"/><path d="M18 16v1a3 3 0 0 1-3 3h-2"/></svg>
+    <button class="em-fab" style="right:20px;top:400px;" onclick="openEmergency()" aria-label="Emergency">
+      <svg viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/></svg>
     </button>
 
     <!-- bottom sheet -->
@@ -1393,8 +1401,8 @@
     <div class="topbar pt-status" style="position:absolute;top:0;left:0;right:0;z-index:20;">
       <button class="back-btn" onclick="go('s-home',true)">←</button><h2 style="color:var(--navy);background:#fff;padding:6px 14px;border-radius:30px;box-shadow:var(--shadow);flex:none;">Live Tracking</h2>
     </div>
-    <button class="support-fab" style="right:18px;top:250px;" onclick="openSupport()" aria-label="Support">
-      <svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2zM20 14a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2z"/><path d="M18 16v1a3 3 0 0 1-3 3h-2"/></svg>
+    <button class="em-fab" style="right:18px;top:250px;" onclick="openEmergency()" aria-label="Emergency">
+      <svg viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/></svg>
     </button>
 
     <div class="sheet">
@@ -1893,19 +1901,30 @@
     </div>
   </section>
 
-  <!-- ===== global Support bottom sheet ===== -->
-  <div class="scrim" id="supportScrim" onclick="closeSupport()"></div>
-  <div class="smart-sheet" id="supportSheet">
+  <!-- ===== global Emergency Alert bottom sheet ===== -->
+  <div class="scrim" id="emScrim" onclick="closeEmergency()"></div>
+  <div class="smart-sheet" id="emSheet">
     <div class="grab"></div>
-    <div class="row between" style="margin-bottom:12px;">
-      <h2 style="font-size:18px;">Support</h2>
-      <span class="icon-btn" style="width:32px;height:32px;" onclick="closeSupport()">✕</span>
+    <!-- confirm state -->
+    <div id="emConfirm">
+      <div class="center" style="margin-bottom:12px;">
+        <div style="width:56px;height:56px;border-radius:16px;background:rgba(242,53,69,.1);display:flex;align-items:center;justify-content:center;margin:2px auto 0;">
+          <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--red);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/></svg>
+        </div>
+      </div>
+      <h2 style="font-size:19px;text-align:center;">Emergency Alert</h2>
+      <p class="sub center" style="margin-top:6px;max-width:290px;margin-left:auto;margin-right:auto;">Need immediate assistance? This will instantly notify the Medurun Operations Team with your live ride details and current location.</p>
+      <button class="btn btn-red emg" style="margin-top:16px;" onclick="sendEmergency()">Send Emergency Alert</button>
+      <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="closeEmergency()">Cancel</button>
     </div>
-    <div class="card-w" style="padding:4px 6px;border-radius:12px;">
-      <div class="menu-item" onclick="toast('Calling support…')"><svg class="icon" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg><span>Call Support</span><i></i></div>
-      <div class="menu-item" onclick="toast('Opening live chat…')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Live Chat</span><i></i></div>
-      <div class="menu-item" onclick="toast('Calling 108…')"><svg class="icon" viewBox="0 0 24 24" style="color:var(--red);"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/></svg><span>Emergency Helpline (108)</span><i></i></div>
-      <div class="menu-item" onclick="closeSupport();go('s-help')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg><span>Help Center</span><i></i></div>
+    <!-- success state -->
+    <div id="emSuccess" style="display:none;">
+      <div class="center" style="margin-bottom:8px;">
+        <div class="success-check" style="width:64px;height:64px;font-size:30px;">✓</div>
+        <h2 style="font-size:19px;margin-top:14px;">Emergency Alert Sent</h2>
+        <p class="sub center" style="margin-top:6px;max-width:290px;margin-left:auto;margin-right:auto;">Our operations team has been notified. A support executive will contact you immediately.</p>
+      </div>
+      <button class="btn btn-red" style="margin-top:14px;" onclick="closeEmergency()">Done</button>
     </div>
   </div>
 
@@ -2094,13 +2113,20 @@
     document.getElementById('ambDetailsScrim').classList.remove('show');
     document.getElementById('ambDetailsSheet').classList.remove('show');
   }
-  function openSupport(){
-    document.getElementById('supportScrim').classList.add('show');
-    document.getElementById('supportSheet').classList.add('show');
+  // ===== Emergency Alert → Medurun Operations =====
+  function openEmergency(){
+    document.getElementById('emConfirm').style.display='';       // reset to confirm state
+    document.getElementById('emSuccess').style.display='none';
+    document.getElementById('emScrim').classList.add('show');
+    document.getElementById('emSheet').classList.add('show');
   }
-  function closeSupport(){
-    document.getElementById('supportScrim').classList.remove('show');
-    document.getElementById('supportSheet').classList.remove('show');
+  function closeEmergency(){
+    document.getElementById('emScrim').classList.remove('show');
+    document.getElementById('emSheet').classList.remove('show');
+  }
+  function sendEmergency(){
+    document.getElementById('emConfirm').style.display='none';
+    document.getElementById('emSuccess').style.display='';        // show success state
   }
 
   // ===== confirmation dialog =====
