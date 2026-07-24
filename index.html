@@ -351,6 +351,14 @@
     box-shadow:0 4px 14px rgba(21,35,59,.14);z-index:60;}
   .sos-min:active{transform:scale(.94);}
 
+  /* floating Support button (Live Tracking) */
+  .support-fab{position:absolute;width:48px;height:48px;border-radius:50%;background:#fff;
+    border:1.5px solid var(--blue-soft);display:flex;align-items:center;justify-content:center;
+    color:var(--blue);cursor:pointer;box-shadow:0 4px 14px rgba(24,44,80,.14);z-index:60;}
+  .support-fab svg{width:22px;height:22px;stroke:var(--blue);stroke-width:1.7;fill:none;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .support-fab:active{transform:scale(.94);}
+
   /* lighter, more compact bottom sheet */
   #s-home .sheet{border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(21,35,59,.10);padding:14px 22px 84px;}
   #s-home .sheet h2{font-size:18px;font-weight:700;}
@@ -1383,7 +1391,9 @@
     <div class="topbar pt-status" style="position:absolute;top:0;left:0;right:0;z-index:20;">
       <button class="back-btn" onclick="go('s-home',true)">←</button><h2 style="color:var(--navy);background:#fff;padding:6px 14px;border-radius:30px;box-shadow:var(--shadow);flex:none;">Live Tracking</h2>
     </div>
-    <div class="sos-min" style="right:18px;top:250px;" onclick="toast('SOS sent to control room')">SOS</div>
+    <button class="support-fab" style="right:18px;top:250px;" onclick="openSupport()" aria-label="Support">
+      <svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2zM20 14a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2z"/><path d="M18 16v1a3 3 0 0 1-3 3h-2"/></svg>
+    </button>
 
     <div class="sheet">
       <div class="grab"></div>
@@ -1446,6 +1456,22 @@
 
       <button class="btn btn-red" style="margin-top:14px;gap:8px;" onclick="toast('Calling driver…')"><svg class="icon icon-sm" viewBox="0 0 24 24" style="stroke:#fff;"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call Driver</button>
       <button class="btn btn-outline btn-sm" style="margin-top:10px;gap:7px;" onclick="toast('Tracking link shared')"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 15V4M8 8l4-4 4 4"/></svg>Share Tracking</button>
+    </div>
+
+    <!-- ===== Support bottom sheet ===== -->
+    <div class="scrim" id="supportScrim" onclick="closeSupport()"></div>
+    <div class="smart-sheet" id="supportSheet">
+      <div class="grab"></div>
+      <div class="row between" style="margin-bottom:12px;">
+        <h2 style="font-size:18px;">Support</h2>
+        <span class="icon-btn" style="width:32px;height:32px;" onclick="closeSupport()">✕</span>
+      </div>
+      <div class="card-w" style="padding:4px 6px;border-radius:12px;">
+        <div class="menu-item" onclick="toast('Calling support…')"><svg class="icon" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg><span>Call Support</span><i></i></div>
+        <div class="menu-item" onclick="toast('Opening live chat…')"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Live Chat</span><i></i></div>
+        <div class="menu-item" onclick="toast('Calling 108…')"><svg class="icon" viewBox="0 0 24 24" style="color:var(--red);"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h.01"/></svg><span>Emergency Helpline (108)</span><i></i></div>
+        <div class="menu-item" onclick="closeSupport();go('s-help')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg><span>Help Center</span><i></i></div>
+      </div>
     </div>
   </section>
 
@@ -2064,6 +2090,14 @@
   function closeAmbDetails(){
     document.getElementById('ambDetailsScrim').classList.remove('show');
     document.getElementById('ambDetailsSheet').classList.remove('show');
+  }
+  function openSupport(){
+    document.getElementById('supportScrim').classList.add('show');
+    document.getElementById('supportSheet').classList.add('show');
+  }
+  function closeSupport(){
+    document.getElementById('supportScrim').classList.remove('show');
+    document.getElementById('supportSheet').classList.remove('show');
   }
 
   // ===== confirmation dialog =====
