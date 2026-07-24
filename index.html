@@ -6,18 +6,22 @@
 <title>AmbuCare / RapidAid — Emergency Ambulance Booking</title>
 <style>
   :root{
-    --red:#E63946;        /* emergency red */
-    --red-dark:#C62B38;
-    --navy:#15233B;       /* deep navy text */
-    --navy-soft:#3A4A66;
-    --grey-card:#F2F4F8;  /* soft grey cards */
-    --grey-line:#E4E8EF;
-    --grey-text:#8A94A6;
+    --blue:#1846A3;       /* brand blue — trust / navigation */
+    --blue-dark:#123A88;
+    --blue-soft:#CBD8EC;
+    --red:#F23545;        /* emergency red */
+    --red-dark:#D8202F;
+    --navy:#1F2A44;       /* primary text */
+    --navy-soft:#6B7280;  /* secondary text */
+    --grey-card:#F2F5F9;  /* soft grey surfaces */
+    --grey-line:#E8EDF3;  /* borders */
+    --grey-text:#6B7280;
+    --bg:#FAFBFC;
     --white:#FFFFFF;
     --green:#2BB673;
     --amber:#F4A340;
-    --shadow:0 8px 30px rgba(21,35,59,.10);
-    --shadow-lg:0 18px 50px rgba(21,35,59,.18);
+    --shadow:0 8px 30px rgba(24,44,80,.09);
+    --shadow-lg:0 18px 50px rgba(24,44,80,.16);
     --r:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -75,7 +79,7 @@
   .statusbar .sb-icons{display:flex;gap:6px;align-items:center;}
 
   /* ===== Screens ===== */
-  .screen{position:absolute;inset:0;background:var(--white);
+  .screen{position:absolute;inset:0;background:var(--bg);
     display:flex;flex-direction:column;
     opacity:0;visibility:hidden;transform:translateX(30px);
     transition:opacity .32s ease, transform .32s cubic-bezier(.4,0,.2,1), visibility .32s;
@@ -102,11 +106,14 @@
     cursor:pointer;transition:transform .12s ease, box-shadow .2s, background .2s;
     font-family:inherit;}
   .btn:active{transform:scale(.97);}
-  .btn-red{background:var(--red);color:#fff;box-shadow:0 8px 20px rgba(230,57,70,.32);}
-  .btn-red:active{background:var(--red-dark);}
-  .btn-navy{background:var(--navy);color:#fff;}
+  /* primary = brand blue (trust); .emg = emergency red */
+  .btn-red{background:var(--blue);color:#fff;box-shadow:0 8px 20px rgba(24,70,163,.28);}
+  .btn-red:active{background:var(--blue-dark);}
+  .btn-red.emg{background:var(--red);box-shadow:0 8px 20px rgba(242,53,69,.32);}
+  .btn-red.emg:active{background:var(--red-dark);}
+  .btn-navy{background:var(--blue);color:#fff;}
   .btn-ghost{background:var(--grey-card);color:var(--navy);}
-  .btn-outline{background:#fff;color:var(--navy);border:1.6px solid var(--grey-line);}
+  .btn-outline{background:#fff;color:var(--blue);border:1.6px solid var(--blue-soft);}
   .btn-line-red{background:#fff;color:var(--red);border:1.6px solid var(--red);}
   .btn-sm{padding:13px;font-size:14px;border-radius:12px;}
 
@@ -287,7 +294,7 @@
   #s-login .pill-prefix{height:48px;display:flex;align-items:center;}
   #s-login .btn{height:48px;padding:0;font-size:15px;}
   #s-login .field{margin-bottom:12px;}
-  #s-login .textlink{color:var(--red);font-weight:700;cursor:pointer;}
+  #s-login .textlink{color:var(--blue);font-weight:700;cursor:pointer;}
 
   /* ===== onboarding progress bar ===== */
   .obar-wrap{padding:0 22px 2px;}
@@ -584,6 +591,31 @@
   .flagcode{font-size:.7em;font-weight:800;letter-spacing:.5px;color:var(--navy);
     background:var(--grey-card);border-radius:5px;padding:2px 5px;}
 
+  /* ===== BRAND RECOLOR — blue = trust/navigation, red = emergency ===== */
+  .topbar h2{color:var(--blue);}                                  /* headers */
+  .icon-btn{color:var(--blue);}                                   /* util / notification icons */
+  .bottomnav .navitem.on,.bottomnav .navitem.on .icon{color:var(--blue);}
+  .obar i{background:var(--blue);}                                /* progress bar */
+  .hstep .node.now{color:var(--blue);}
+  .hstep .node.now .dot{border-color:var(--blue);background:var(--blue);box-shadow:0 0 0 4px rgba(24,70,163,.15);}
+  .hstep .node.now::before,.hstep .node.done::before{background:var(--blue);}
+  .textlink{color:var(--blue);}
+  .prof-edit,.prof-edit .icon{color:var(--blue);}
+  .reco-tag{background:var(--blue);}
+  .menu-item .icon{color:var(--blue);}
+  .chip.on{background:var(--blue);border-color:var(--blue);}      /* selection */
+  .input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,70,163,.12);}
+  .otp-row input.otp-box:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,70,163,.16);}
+  .panel-search:focus{border-color:var(--blue);}
+  .opt-row.sel,.opt-row.sel .meta,.opt-row.sel .opt-ic .icon{color:var(--blue);}
+  .route-hosp.sel{box-shadow:inset 0 0 0 1.5px rgba(24,70,163,.4);background:rgba(24,70,163,.05);}
+  .route-hosp.sel .icon{color:var(--blue);}
+  .vreg{color:var(--blue);border-color:var(--blue-soft);}
+  .pn-item.on{color:var(--blue);border-left-color:var(--blue);background:rgba(24,70,163,.06);}
+  .pn-brand span{background:var(--blue);}
+  .badge-green{background:rgba(43,182,115,.14);color:#1d8f5a;}    /* unchanged */
+  /* emergency red preserved: ETA, SOS, route line, active marker, map pins, .emg buttons, badge-red */
+
   /* prototype-only demo shortcut (Live Tracking) */
   .demo-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
     padding:0 18px;border-radius:22px;background:var(--grey-card);color:var(--navy);
@@ -664,12 +696,8 @@
             </div>
           </div>
           <button class="btn btn-red" style="margin-top:6px;" onclick="loginOtp()">Continue with OTP</button>
-
-          <div class="divider" style="margin:16px 0;">new to AmbuCare?</div>
-
-          <button class="btn btn-outline" onclick="createAccount()">Create New Account</button>
         </div>
-        <p class="center small muted" style="margin-top:22px;line-height:1.6;">We'll send a one-time code to verify your number.<br>By continuing you agree to our <b style="color:var(--navy-soft);">Terms</b> & <b style="color:var(--navy-soft);">Privacy Policy</b></p>
+        <p class="center small muted" style="margin-top:20px;line-height:1.6;">We'll text a one-time code to verify your number. New here? We'll set up your account automatically.<br style="margin-top:6px;"><span style="display:inline-block;margin-top:8px;">By continuing you agree to our <b style="color:var(--navy-soft);">Terms</b> &amp; <b style="color:var(--navy-soft);">Privacy Policy</b></span></p>
       </div>
     </div>
   </section>
@@ -690,7 +718,7 @@
           </div>
         </div>
         <button class="btn btn-red" style="height:48px;padding:0;" onclick="sendResetOtp()">Send reset OTP</button>
-        <p class="center small" style="margin-top:18px;color:var(--navy-soft);">Remembered it? <span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Back to login</span></p>
+        <p class="center small" style="margin-top:18px;color:var(--navy-soft);">Remembered it? <span class="textlink" style="color:var(--blue);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Back to login</span></p>
       </div>
     </div>
   </section>
@@ -729,7 +757,7 @@
           <div class="field"><label>Email <span class="muted" style="font-weight:400;">(optional)</span></label><input id="regEmail" class="input" style="height:48px;" type="email" placeholder="you@email.com" value="aarav@email.com"></div>
         </div>
         <button class="btn btn-red" style="height:48px;padding:0;margin-top:4px;" onclick="submitRegister()">Continue</button>
-        <p class="center small" style="margin-top:16px;color:var(--navy-soft);">Already have an account? <span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Login</span></p>
+        <p class="center small" style="margin-top:16px;color:var(--navy-soft);">Already have an account? <span class="textlink" style="color:var(--blue);font-weight:700;cursor:pointer;" onclick="go('s-login',true)">Login</span></p>
       </div>
     </div>
   </section>
@@ -742,7 +770,7 @@
       <div class="pad" style="padding-top:10px;">
         <h1>Enter the code</h1>
         <p class="sub">6-digit code sent to <b style="color:var(--navy);">+91 98765 43210</b></p>
-        <p class="small" style="margin-top:4px;"><span class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="changeNumber()">Change Number</span></p>
+        <p class="small" style="margin-top:4px;"><span class="textlink" style="color:var(--blue);font-weight:700;cursor:pointer;" onclick="changeNumber()">Change Number</span></p>
 
         <div class="otp-row" id="otpRow" style="margin-top:24px;">
           <input class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
@@ -754,7 +782,7 @@
         </div>
         <p class="center muted small" style="margin-top:18px;">Didn't receive the code?
           <span id="resendWrap">Resend in <b style="color:var(--red);" id="resendTimer">00:24</b></span>
-          <span id="resendBtn" class="textlink" style="color:var(--red);font-weight:700;cursor:pointer;display:none;" onclick="resendOtp()">Resend OTP</span></p>
+          <span id="resendBtn" class="textlink" style="color:var(--blue);font-weight:700;cursor:pointer;display:none;" onclick="resendOtp()">Resend OTP</span></p>
 
         <button id="otpVerifyBtn" class="btn btn-red" style="margin-top:22px;" onclick="otpVerified()" disabled>Verify &amp; Continue</button>
       </div>
@@ -937,8 +965,8 @@
         <p class="small" style="color:var(--navy-soft);"><b style="color:var(--navy);">Nearest ambulance: 3 min away</b> · 6 units available nearby</p>
       </div>
       <div id="homeCTA">
-        <button class="btn btn-red" id="homeBookBtn" onclick="openSmartSheet()">Book Ambulance</button>
-        <button class="btn btn-outline btn-sm" style="gap:7px;margin-top:10px;" onclick="toast('Calling 108…')">
+        <button class="btn btn-red emg" id="homeBookBtn" onclick="openSmartSheet()">Book Ambulance</button>
+        <button class="btn btn-line-red btn-sm" style="gap:7px;margin-top:10px;" onclick="toast('Calling 108…')">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v4a1 1 0 0 1-1 1A17 17 0 0 1 3 5a1 1 0 0 1 1-1"/></svg>Call 108 — Govt Ambulance</button>
       </div>
     </div>
@@ -1011,8 +1039,8 @@
       <div class="card-w" style="padding:11px 14px;margin-top:12px;border-radius:12px;">
         <div class="row between"><b>Total Fare</b><b style="font-size:18px;" id="smartTotal">₹899</b></div>
         <div class="row between" onclick="toggleFare('smartFareDetail','smartFareChev')" style="cursor:pointer;margin-top:8px;">
-          <span class="small" style="color:var(--red);font-weight:700;">View Fare Details</span>
-          <svg id="smartFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="small" style="color:var(--blue);font-weight:700;">View Fare Details</span>
+          <svg id="smartFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--blue);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
         </div>
         <div id="smartFareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;animation:panelIn .2s ease;">
           <div class="lineitem" style="padding:6px 0;"><span>Base fare</span><span id="fareBase">₹499</span></div>
@@ -1023,7 +1051,7 @@
         </div>
       </div>
 
-      <button class="btn btn-red" id="smartCta" style="height:50px;margin-top:16px;font-weight:800;font-size:16px;letter-spacing:.2px;" onclick="confirmSmart()">Confirm Booking · ₹899</button>
+      <button class="btn btn-red emg" id="smartCta" style="height:50px;margin-top:16px;font-weight:800;font-size:16px;letter-spacing:.2px;" onclick="confirmSmart()">Confirm Booking · ₹899</button>
       <p class="center small muted" style="margin-top:8px;">Pay after the ride · Free cancellation in 2 min</p>
     </div>
 
@@ -1243,7 +1271,7 @@
         <div class="card-w" style="padding:12px 14px;margin-top:10px;">
           <div class="row between"><b>Total Fare</b><b style="font-size:19px;">₹899</b></div>
           <div class="row between" onclick="toggleFare()" style="cursor:pointer;margin-top:9px;">
-            <span class="small" style="color:var(--red);font-weight:700;">View Fare Breakdown</span>
+            <span class="small" style="color:var(--blue);font-weight:700;">View Fare Breakdown</span>
             <svg id="fareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div id="fareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;">
@@ -1264,7 +1292,7 @@
 
     <!-- sticky CTA -->
     <div style="padding:11px 20px 16px;border-top:1px solid var(--grey-line);background:#fff;">
-      <button class="btn btn-red" style="height:50px;padding:0;" onclick="go('s-search')">Confirm Booking · ₹899</button>
+      <button class="btn btn-red emg" style="height:50px;padding:0;" onclick="go('s-search')">Confirm Booking · ₹899</button>
       <p class="center small muted" style="margin-top:8px;">Pay after the ride · Free cancellation in 2 min</p>
     </div>
   </section>
@@ -1410,8 +1438,8 @@
           <div style="height:1px;background:var(--grey-line);margin:6px 0;"></div>
           <div class="row between"><b>Total Fare</b><b style="font-size:18px;">₹899</b></div>
           <div class="row between" onclick="toggleFare('cmpFareDetail','cmpFareChev')" style="cursor:pointer;margin-top:9px;">
-            <span class="small" style="color:var(--red);font-weight:700;">View Fare Breakdown</span>
-            <svg id="cmpFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--red);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
+            <span class="small" style="color:var(--blue);font-weight:700;">View Fare Breakdown</span>
+            <svg id="cmpFareChev" class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--blue);width:16px;height:16px;transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div id="cmpFareDetail" style="display:none;margin-top:6px;border-top:1px dashed var(--grey-line);padding-top:4px;">
             <div class="lineitem" style="padding:7px 0;"><span>Base fare</span><span>₹499</span></div>
@@ -1684,7 +1712,7 @@
       <div class="pad" style="padding-top:6px;">
         <div class="card" style="padding:14px;background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.25);">
           <div class="row between"><div class="row" style="gap:10px;"><svg class="icon" viewBox="0 0 24 24" style="color:var(--red);"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17h0"/></svg><div><b>Emergency Helpline</b><p class="small muted">24/7 · 108 / 102</p></div></div>
-            <button class="btn btn-red btn-sm" style="width:auto;padding:9px 16px;" onclick="toast('Calling 108…')">Call</button></div>
+            <button class="btn btn-red emg btn-sm" style="width:auto;padding:9px 16px;" onclick="toast('Calling 108…')">Call</button></div>
         </div>
         <p class="small muted" style="font-weight:700;margin:16px 0 8px;">FAQs</p>
         <div class="card-w" style="padding:4px 6px;">
@@ -1724,7 +1752,7 @@
   <!-- ============ 18. NOTIFICATIONS ============ -->
   <section class="screen" id="s-notifications">
     <div class="topbar pt-status"><button class="back-btn" onclick="back()">←</button><h2 style="flex:1;">Notifications</h2>
-      <span class="small" style="color:var(--red);font-weight:700;cursor:pointer;" onclick="toast('All marked read')">Mark read</span></div>
+      <span class="small" style="color:var(--blue);font-weight:700;cursor:pointer;" onclick="toast('All marked read')">Mark read</span></div>
     <div class="scroll">
       <div class="pad" style="padding-top:6px;">
         <p class="small muted" style="font-weight:700;margin-bottom:8px;">TODAY</p>
@@ -1878,12 +1906,15 @@
     if(pass.length<4){ toast('Enter your password'); return; }
     go('s-home');                     // password login → straight to Home
   }
+  // OTP-first auth: enter phone → OTP → system decides new vs existing
+  const KNOWN_PHONES=new Set(['9876543210']);                      // prototype: "registered" numbers
+  let authPhone='';
   function loginOtp(){
     const phone=(document.getElementById('loginPhone').value||'').replace(/\D/g,'');
     if(phone.length<10){ toast('Enter a valid 10-digit phone number'); return; }
-    loginMode='otp'; go('s-otp');                                  // existing user → OTP → Home
+    authPhone=phone; loginMode='otp'; go('s-otp');
   }
-  function createAccount(){ go('s-register'); }                    // new user → Registration → OTP → Medical Profile
+  function createAccount(){ go('s-register'); }                    // (unused from login; kept for register screen)
 
   // forgot-password flow
   function sendResetOtp(){
@@ -1898,20 +1929,18 @@
     go('s-login',true); toast('✓ Password reset successfully. Please log in.');
   }
 
-  // registration flow
+  // create-account details (collected AFTER OTP for new users) → Medical Profile
   function submitRegister(){
     const name=(document.getElementById('regName').value||'').trim();
-    const phone=(document.getElementById('regPhone').value||'').replace(/\D/g,'');
-    if(!name){ toast('Enter your full name'); return; }
-    if(phone.length<10){ toast('Enter a valid 10-digit phone number'); return; }
-    loginMode='register'; go('s-otp');
+    if(!name){ toast('Enter your full name'); return; }              // email optional
+    go('s-profile');
   }
 
-  // route after OTP verify by flow context
+  // after OTP: auto-detect new vs existing user
   function otpVerified(){
-    if(loginMode==='register') go('s-profile');
-    else if(loginMode==='reset') go('s-reset');
-    else go('s-home');
+    if(loginMode==='reset'){ go('s-reset'); return; }
+    if(KNOWN_PHONES.has(authPhone)){ toast('Welcome back'); go('s-home'); }   // existing → Home
+    else { toast('New number · setting up your account'); go('s-register'); } // new → Create Account → Medical Profile
   }
 
   let current = 's-splash';
