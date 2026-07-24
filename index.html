@@ -37,7 +37,7 @@
 
   /* ===== desktop-only prototype navigation sidebar ===== */
   .protonav{display:none;}
-  @media (min-width:1024px){
+  @media (min-width:900px){
     .protonav{display:block;position:fixed;left:0;top:0;bottom:0;width:238px;z-index:500;
       background:#fff;border-right:1px solid #E4E8EF;overflow-y:auto;padding:20px 0 24px;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
@@ -1852,11 +1852,12 @@
   // ===== responsive scale: fit phone in viewport, never crop, cap ~0.85 =====
   const PH_W=420, PH_H=884;            // frame incl borders
   function fitPhone(){
-    const reserveH=20, reserveW=20;    // small breathing margin only
+    const sidebar = window.innerWidth>=900 ? 238 : 0;   // desktop nav reserves left space
+    const reserveH=20, reserveW=20;
     const s=Math.min(
       (window.innerHeight-reserveH)/PH_H,
-      (window.innerWidth -reserveW)/PH_W,
-      0.85                             // hard cap → 15% smaller than full size
+      (window.innerWidth - sidebar - reserveW)/PH_W,
+      0.85
     );
     document.querySelector('.phone').style.setProperty('--s', s.toFixed(3));
   }
