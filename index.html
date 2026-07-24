@@ -34,6 +34,29 @@
     display:flex;align-items:center;justify-content:center;
     overflow:hidden;
   }
+
+  /* ===== desktop-only prototype navigation sidebar ===== */
+  .protonav{display:none;}
+  @media (min-width:1024px){
+    .protonav{display:block;position:fixed;left:0;top:0;bottom:0;width:238px;z-index:500;
+      background:#fff;border-right:1px solid #E4E8EF;overflow-y:auto;padding:20px 0 24px;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+    .stage{left:238px;}
+  }
+  .protonav::-webkit-scrollbar{width:8px;}
+  .protonav::-webkit-scrollbar-thumb{background:#E4E8EF;border-radius:8px;}
+  .pn-brand{display:flex;align-items:center;gap:9px;padding:0 20px 2px;font-size:16px;font-weight:800;color:#15233B;}
+  .pn-brand span{width:26px;height:26px;border-radius:8px;background:#E63946;color:#fff;display:flex;
+    align-items:center;justify-content:center;font-size:14px;}
+  .pn-note{font-size:11px;color:#8A94A6;padding:2px 20px 8px;}
+  .pn-sec{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#8A94A6;padding:15px 20px 4px;}
+  .pn-item{display:flex;align-items:center;gap:11px;padding:9px 20px;font-size:14px;font-weight:600;
+    color:#3A4A66;cursor:pointer;border-left:3px solid transparent;transition:background .12s,color .12s;}
+  .pn-item:hover{background:#F2F4F8;}
+  .pn-item.on{color:#E63946;border-left-color:#E63946;background:rgba(230,57,70,.06);}
+  .pn-item svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.7;fill:none;
+    stroke-linecap:round;stroke-linejoin:round;flex:none;}
+
   /* ===== Phone frame ===== */
   .phone{
     position:relative;width:390px;height:844px;flex:none;
@@ -576,6 +599,31 @@
 </style>
 </head>
 <body>
+
+<!-- desktop-only prototype navigation (hidden on mobile / <1024px) -->
+<nav class="protonav" id="protonav">
+  <div class="pn-brand"><span>🚑</span>AmbuCare</div>
+  <div class="pn-note">Prototype navigation · demo only</div>
+
+  <div class="pn-sec">AUTHENTICATION</div>
+  <div class="pn-item" data-s="s-login" onclick="go('s-login')"><svg viewBox="0 0 24 24"><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>Login</div>
+  <div class="pn-item" data-s="s-otp" onclick="go('s-otp')"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>OTP Verification</div>
+  <div class="pn-item" data-s="s-register" onclick="go('s-register')"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M3 21c0-4 3-6 6-6s6 2 6 6"/><path d="M19 8v6M16 11h6"/></svg>Create Account</div>
+  <div class="pn-item" data-s="s-profile" onclick="go('s-profile')"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v2H9z"/><path d="M12 11v5M9.5 13.5h5"/></svg>Medical Profile</div>
+
+  <div class="pn-sec">BOOKING</div>
+  <div class="pn-item" data-s="s-home" onclick="go('s-home')"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Home</div>
+  <div class="pn-item" data-s="s-confirm" onclick="go('s-confirm')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-5"/></svg>Confirm Booking</div>
+  <div class="pn-item" data-s="s-track" onclick="go('s-track')"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>Live Tracking</div>
+  <div class="pn-item" data-s="s-complete" onclick="go('s-complete')"><svg viewBox="0 0 24 24"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>Reached Safely</div>
+  <div class="pn-item" data-s="s-payment" onclick="go('s-payment')"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Payment</div>
+  <div class="pn-item" data-s="s-invoice" onclick="go('s-invoice')"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h5"/></svg>Invoice</div>
+
+  <div class="pn-sec">ACCOUNT</div>
+  <div class="pn-item" data-s="s-history" onclick="go('s-history')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Ride History</div>
+  <div class="pn-item" data-s="s-profile-view" onclick="go('s-profile-view')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</div>
+  <div class="pn-item" data-s="s-notifications" onclick="go('s-notifications')"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Notifications</div>
+</nav>
 
 <div class="stage">
 <div class="phone">
@@ -1883,6 +1931,8 @@
     // status bar color
     const sb = document.getElementById('statusbar');
     sb.classList.toggle('light', id==='s-splash');
+    // desktop prototype sidebar active highlight
+    document.querySelectorAll('.pn-item').forEach(it=>it.classList.toggle('on', it.dataset.s===id));
     // screen-specific hooks
     if(id==='s-otp'){ resetOtp(); }
     if(id==='s-hospitals'){ renderHospitals(); }
