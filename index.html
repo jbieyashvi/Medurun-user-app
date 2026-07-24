@@ -592,6 +592,17 @@
   .smart-link.sec{color:var(--grey-text);font-size:12.5px;font-weight:600;padding:9px 2px;}
   .smart-link.sec:active{opacity:.6;}
 
+  /* prominent ambulance accordion header */
+  .amb-acc{display:flex;align-items:center;justify-content:space-between;margin-top:8px;
+    padding:11px 13px;border:1.4px solid var(--blue-soft);border-radius:11px;background:rgba(24,70,163,.04);
+    font-size:13.5px;font-weight:700;color:var(--blue);cursor:pointer;transition:background .15s;}
+  .amb-acc:active{background:rgba(24,70,163,.09);}
+  /* radio indicator in ambulance list */
+  .radio-dot{width:19px;height:19px;border-radius:50%;border:2px solid var(--grey-line);flex:none;
+    position:relative;transition:border-color .15s;}
+  .opt-row.sel .radio-dot{border-color:var(--blue);}
+  .opt-row.sel .radio-dot::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--blue);}
+
   /* ===== unified inline icon (emoji replacement) ===== */
   .i{display:inline-flex;align-items:center;justify-content:center;
     width:1.05em;height:1.05em;vertical-align:-.16em;}
@@ -1015,8 +1026,10 @@
           <div class="center"><span class="small muted">ETA</span><br><b style="color:var(--red);font-size:16px;" id="recoEta">4 min</b></div>
         </div>
       </div>
-      <div class="smart-link sec" id="ambToggle" onclick="toggleAmbPanel()">
-        <span>Need advanced care? Change Ambulance Type</span><i class="chev"></i></div>
+      <div class="amb-acc" id="ambToggle" onclick="toggleAmbPanel()">
+        <span>Change Ambulance Type</span>
+        <svg id="ambChev" class="icon icon-sm" viewBox="0 0 24 24" style="width:16px;height:16px;color:var(--blue);transition:transform .25s;"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
       <!-- inline ambulance list -->
       <div class="inline-panel" id="ambPanel" style="display:none;"></div>
 
@@ -2141,7 +2154,8 @@
     {name:'Office',sub:'Tower B, Sector 63, Noida'},
     {name:'Sector 18 Metro',sub:'Near DLF Mall, Noida'}
   ];
-  function hideSmartPanels(){ ['ambPanel','pickupPanel','destPanel'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; }); }
+  function hideSmartPanels(){ ['ambPanel','pickupPanel','destPanel'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+    const c=document.getElementById('ambChev'); if(c) c.style.transform=''; }
   function togglePanel(id,render){
     const p=document.getElementById(id); if(!p) return;
     const open=p.style.display!=='none'; hideSmartPanels();
@@ -2153,12 +2167,15 @@
     document.getElementById('ambPanel').innerHTML=Object.keys(AMB).map(k=>{
       const a=AMB[k], fare=(a.total-400)+dch+112;
       return `<div class="opt-row ${k===currentAmb?'sel':''}" onclick="chooseAmb('${k}')">
+        <span class="radio-dot"></span>
         <div class="opt-ic"><span class="i"><svg viewBox="0 0 24 24">${ICONS[a.icon]||''}</svg></span></div>
         <div>${a.name}<p class="small muted">${a.sub.split('·')[0].trim()}</p></div>
         <div class="meta">${a.eta} • ${inr(fare)}</div></div>`;
     }).join('');
   }
-  function toggleAmbPanel(){ togglePanel('ambPanel', renderAmbList); }
+  function toggleAmbPanel(){ togglePanel('ambPanel', renderAmbList);
+    const open=document.getElementById('ambPanel').style.display!=='none';
+    const c=document.getElementById('ambChev'); if(c) c.style.transform=open?'rotate(180deg)':''; }
   function chooseAmb(k){ currentAmb=k; refreshSmartSheet(); hideSmartPanels(); }
   // pickup
   function renderPickupRecent(q){
